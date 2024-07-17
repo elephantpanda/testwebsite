@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" ></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+<script>
+    var ID=0;
+    function createInput(text){
+        ID++;
+        document.write(
+`<textarea id=example${ID} class="input" spellcheck="false">
+${text}  
+</textarea><button onclick="go('example${ID}','output${ID}',true)">GO</button>
+<div id="output${ID}" class="outputbox"></div>
+`)
+    }
+</script>
+
+<div class="content">
+<h1>Paul's Type Theory</h1>
+<h2>Contents</h2>
+
+<lu>
+<li><a href="introduction.html">Introduction</a></li>
+<li><a href="logic.html">Logic</a></li>
+<li><a href="hierachy.html">Hierachy</a></li>
+<li><a href="helpers.html">Helper Functions</a></li>
+<li><a href="naturals.html">Natural Numbers</a></li>
+<li><a href="modularnumbers.html">Modular numbers</a></li>
+<li><a href="integers.html">Integer Numbers</a></li>
+<li><a href="rationals.html">Rational Numbers</a></li>
+<li><a href="reals.html">Real Numbers</a></li>
+<li><a href="binary.html">Binary Numbers</a></li>
+<li><a href="complex.html">Complex Numbers</a></li>
+<li><a href="quaternion.html">Quaternion Numbers</a></li>
+<li><a href="octonion.html">Octonion Numbers</a></li>
+<li><a href="virosoro.html">Virosoro Algebra</a></li></liL>
+<li><a href="vertexalgebra.html">Vertex Operator Algebra</a></li>
+<li><a href="">Exceptional Lie groups</a></li>
+<li><a href="">Kac Moody Algebra</a></a></li>
+<li><a href="">Leech Lattics</a></li>
+<li><a href="jordan.html">Exceptional Jordan Algebra</a></li>
+<li><a href="proof.html">Proofs</a></li>
+<li><a href="ellipticcurves.html">Elliptic Curves 🏆</li>
+<li><a href="riemannhypothesis.html">Riemann Hypothesis 🏆</a></li>
+<li><a href="topology.html">Topology 🏆</a></li>
+<li><a href="calculus.html">Calculus</a></li>
+<li><a href="linearalgebra.html">Linear Algebra</a></li>
+<li><a href="variational.html">Calculus of Variations</a></li>
+<li><a href="">Navier Stokes Equation 🏆</a></li>
+<li><a href="">Maxwell's Equations</a></li>
+<li><a href="">Yang-Mills</a></li>
+<li><a href="generalrelativity.html">General Relativity</a></li>
+<li><a href="shrodinger.html">Shrödinger Equation</a></li>
+<li><a href="dirac.html">Dirac Equation</a></li>
+<li><a href="">Quantum Field Theory</a></li>
+<li><a href="supersymmetry.html">Supersymmetry</a></li>
+<li><a href="">Supergravity</a></li>
+<li><a href="">String Theory</a></li>
+<li><a href="calabiyau.html">Calabi-Yau manifolds</a></li>
+<li><a href="darkmatter.html">Dark Energy/Dark Matter/MoG</a></li>
+<li><a href="theoryofeverything.html">Theory of Everything 🏆</a></li>
+<li></li>
+<li><a href="errors.html">Bugs</a></li>
+</lu>
+<center>
+    <img src="types_cartoon.png"></img>
+</center>
+</div>
+</html>

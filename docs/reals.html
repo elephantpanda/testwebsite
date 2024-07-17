@@ -1,0 +1,57 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Real Numbers</h1>
+Real numbers are represented by a limiting series of rational numbers given by a function from the natural numbers to the rationals. A real number can have many series representations just like the rational numbers can. The series \(f(n)\) is such that it must satisfy: \( \forall_{t:\mathbb{N}} \exists_{n:\mathbb{N}} \forall_{m:\mathbb{N}} (m>n) \rightarrow |f(m)-f(n)|\lt\frac{1}{t}  \)
+
+<script>
+    createInput("Pi.def");
+    createInput("E.def");
+</script>
+
+To create a  natural number we can write:
+
+<script>
+    createInput("Real.Exp(Real.fromRat.def(1))")
+</script>
+
+
+
+We can multply two real numbers together. We can either keep them in their symbolic form.
+
+<script>
+    createInput(
+`Real.times(E,Pi)`)
+</script>
+
+or we can expand out the definitions:
+<script>
+    createInput(
+`Real.times(E.def,Pi.def)`)
+</script>
+
+To get an approximate rational value we can take the 100th term in the series:
+
+<script>
+    createInput(`toCauchy(E.def)(100)`)
+</script>
+
+<script>
+    createInput(`deriv(FUN(Real, x=> x))(Real.fromRat.def(1));
+    toCauchy(deriv(FUN(Real, x=>Real.times(x,x)))(Real.fromRat.def(1)))(100)
+`)
+</script>
+$$\sqrt{1}$$
+</div>
+</html>

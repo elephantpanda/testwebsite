@@ -1,0 +1,54 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Virosoro Algebra</h1>
+A virosoro algebra has various definitions:
+<br>
+[Ln,Lm] = (m-n)L[n+m] +(1/12)delta(m+n,0)(m^3-m)
+
+<br>
+We can write L(z) = sum  Ln e^(in z)
+<br>
+
+[L(z),L(w)] = (2m-t)L[t]e^(i(t-m) z+ m w)    +  (1/12)(m^3-m) e^(i -m z+ m w)  <br>
+[L(z),L(w)] = 2 L(z) delta'(w-z) - L'(z) delta(w-z) + (1/12) [ delta'''(w-z) - delta'(w-z)]
+
+<br>
+
+[L(f),L(g)] = L [ f g'- g f'] + 
+
+We can write L(f) = sum(f_n Ln)?
+<br>
+[L[f],L[g]] = L[f g'-g f'] +  (c/12) int[ f'' g' - g'' f']
+
+<br>
+
+<script>
+    createInput(
+`f=Var("f",R2R);
+g=Var("g",R2R);
+times(Vir,Vir.mk(f),Vir.mk(g));
+Vir.mk(sub(R2R, times(R2R,f, Deriv(g) ), times(R2R, g, Deriv(f) )  )  );
+`)
+</script>
+Central extension
+<script>
+    createInput(
+` Integral( sub(R2R, times(R2R, Deriv(Deriv(Deriv(f))),Deriv(Deriv(g)))  ,  times(R2R, Deriv(Deriv(Deriv(g))),Deriv(Deriv(f)))      )  );
+`)
+</script>
+
+$$\sqrt{1}$$
+</div>
+</html>

@@ -1,0 +1,32 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js"  charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+<div class="content">
+<h1>Physical Constants</h1>
+We can use physical constants. For example, the ratio's of charged lepton masses:
+<script>
+createInput(
+    `[Real.divide(Mmu,Me),Real.divide(Mtau,Me)]    `)
+</script>
+
+For example we can calculate Koide's empircal formula:
+<script>
+    createInput(
+`a=Real.plus(Real.plus( Real.Sqrt(Me),Real.Sqrt(Mmu)),Real.Sqrt(Mtau)).by(power(Real))(2);
+b=Real.plus(Real.plus(Me,Mmu),Mtau);
+Real.divide(a,b)`)
+</script>
+
+
+$$\sqrt{1}$$
+</div>
+</html>

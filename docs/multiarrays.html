@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Multi-dimensional Arrays</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="doc.css" >
+</head>
+
+
+
+
+<body>
+
+
+<div class="content">
+<h1>Multi-dimensional Arrays</h1>
+This is basically multi-dimensional data. So include large \(n\times m \times o \times p\) matrices. Could be accelerated by GPU. Also could be used for neural networks. 
+<br>
+Perhaps a multi-dimensional array type may be defined as:
+<script>
+    createInput(`MultiArray(Real,LIST(3,4,5))`)
+</script>
+
+And we would set data by:
+
+<script>
+    createInput("MultiArray.fromList(Real,LIST(2,2), LIST(Type.id(Real)(1),2,3,4) )")
+</script>
+
+We would be able to display these tensors in the canvas
+<!---
+<script>
+    createInput(`a= MultiArray.fromFunc(Real, LIST(10,10,3), 
+FUN(Real, x=>FUN(Real, y=>FUN(Real, c=>
+Real.Step( Real.sub(Real.plus(Real.power(x,2), Real.power(y,2)), 25) ) ))) )`)
+</script>
+
+Or perhaps 
+<script>
+    createInput(`a= MultiArray.fromFuncV(Real, LIST(10,10,3), 
+FUN(Vector(Real,3), p=> 
+Real.Step( Real.sub(Real.plus(Real.power(Vector.get(Real,3,Zmod.mk(3,0),p),2  ), Real.power(Vector.get(Real,3,Zmod.mk(3,1),p) ,2)), 25) ) )) `)
+</script>
+
+Or perhaps -->
+<script>
+    createInput(`a= MultiArray.fromFuncL(Real, LIST(3,50,50), 
+FUN(List(Real), p=> 
+Real.Step( Real.sub(Real.plus(Real.power(List.get(Real,1,p),2  ), Real.power(List.get(Real,2,p) ,2)), 2500) ) )) ;
+plotBitmap(3,50,50,a.float())`)
+</script>
+<br>
+For fast array manipulation on GPU we want to act directly on the arrays. e.g. \(Array.Sin(F)  \)
+
+
+<h2>Loading Bitmaps</h2>
+
+
+<h2>Neural Networks</h2>
+A simple neural network which involes a fully connected layer and a tanh operation:
+
+$$\sqrt{\textcolor{red}{1}}$$
+</div>
+</body>
+</html>

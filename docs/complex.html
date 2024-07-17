@@ -1,0 +1,63 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+<div class="content">
+<h1>Complex Numbers</h1>
+This is an example of a dependent field. The complex numbers can be over any field such as the Natural numbers, the integers, or the rationals or other complex numbers.
+
+<script>
+    createInput("Complex(Rat)")
+</script>
+
+To create a complex number we can write:
+
+<script>
+    createInput("ComplexMk(Rat)(2,3.5)")
+</script>
+
+We can multply two complex numbers together:
+
+<script>
+    createInput(
+`a = ComplexMk(Rat)(2,3.5)
+b= ComplexMk(Rat)(5,6.5)
+times(Complex(Rat))(a,b)`)
+</script>
+
+You can get the real part and complex part
+
+<script>
+    createInput(
+`a = ComplexMk(Rat)(2,3.5);realPart(Rat)(a);
+imPart(Rat)(a)`)
+</script>
+
+<h2> Eisenstein Numbers</h2>
+These are numbers with the addition of \( \omega^3 = 1 \). They are related to the complex numbers by 
+
+<script>
+    createInput(
+`a = Eisen.mk(Rat)(2,3.5)`)
+</script>
+Multiplication:
+
+<script>
+    createInput(
+`a = Eisen.mk(Rat)(2,3.5);
+b = Eisen.mk(Rat)(4,-3.5);
+times(Eisen(Rat),a,b)
+`)
+</script>
+
+$$\sqrt{\textcolor{red}{1}}$$
+</div>
+</html>

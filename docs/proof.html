@@ -1,0 +1,98 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+<div class="content">
+<h1>Proof</h1>
+
+<h2>Subsitution</h2>
+Here we will do a simple example of a proof. Given two definitions of ONE and TWO we want to prove TWO=succ(succ(zero)). Definitions have automatic proofs created for them because they are try by definition.
+
+<script>
+    createInput(
+`one=defineVar("ONE",succ(zero));
+two=defineVar("TWO",succ(one)) ;
+f = defineVar("f", FUN(Nat, x=> Nat.equals(two, succ(x))  ) );
+Subst(f.def,two.proof,one.proof) ;
+"Or we could write";
+subst(Nat)(one)(one.def)(f.def)(one.proof)(two.proof) ;
+Subst2(f.def, two, one);
+SubAll(two.proof, one)
+`)
+</script>
+
+The proof is as follows. We create a function f such that f(a) matches one of our previous proofs. Then we combine that we a proof of a=b. And we get the proof f(b). This is another way of saying we are making a subtitution of b with a in the proof f(a). The function f just tells us where we are doing the substitution.
+
+<p class="eq"> proof1:F(a) → proof2:a=b → proof3:F(b)</p>
+
+With <a class=eq2>proof3 = SUBST( F, proof1, proof2 )</a>
+<br>
+A longer proof:
+
+<script>
+        createInput(
+`one=defineVar("ONE",succ(zero));
+two=defineVar("TWO",succ(one)) ;
+three=defineVar("THREE",succ(two));
+var g= FUN(Nat, x=>Nat.equals(three,succ(x))  );
+var f= FUN(Nat, x=>Nat.equals(two, succ(x))  );
+two2=Subst(f,two.proof,one.proof) ; 
+Subst(g,three.proof,two2) ;  `) 
+
+</script>
+
+<h3>Logic</h3>
+As before on the <a href="logic.html">logic</a> page we can show that if we have the definitions of ONE and TWO then we can form the pair of proofs:
+<script>
+    createInput(
+`Prop.pair(one.proof.type, two.proof.type, one.proof,two.proof)`)
+</script> 
+
+
+<h3>Reflection</h3>
+An equation like 2=2 is obviously true. There is a proof defined for these cases called rfl.
+<script>
+createInput(
+    `rfl(Nat)(2)`)
+</script> 
+
+Let us make the proof for the proposition 2=2 or False.
+<script>
+createInput(`Prop.left(Nat.equals(2,2))(False)(rfl(Nat)(2))  `)
+</script> 
+
+<h3>Classical Logic - ForAll </h3>
+Let us prove Socrates is mortal. This is proved using the intro function which transforms the forall into the special case
+
+<script>
+createInput(
+`var human = Var("humans",Type);
+var Socrates = Var("Socrates",human);
+var isMortal = Var("isMortal",human.to(Prop));
+var allHumansMortal = Var("allHumansMortal", FORALL(human, h=>isMortal(h)));
+allHumansMortal.type;
+intro(human)(Socrates)(isMortal)(allHumansMortal)
+`)
+</script>
+
+<h3>Exists</h3>
+To prove the statement that there exists something of a particular type. We just need to provide an example of it. Here we have a provide the value of 3 to the statement that there exists a natural number that equals 3.
+<script>
+    createInput(
+    `exists.mk(Nat, 3, FUN(Nat,x=>equals(Nat,x,3)) , rfl(Nat,3))
+    `)
+    </script>
+
+$$\sqrt{1}$$
+
+<center><a href="index.html">Home</a></center>
+</div>
+</html>

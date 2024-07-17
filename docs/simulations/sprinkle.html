@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gradient Descent on Canvas</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="800"></canvas>
+    <script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const width = canvas.width;
+const height = canvas.height;
+
+// Define the function f(x, y) = 0
+function f(x, y) {
+    //return x * x + y * y - 10000;  // Example function: circle of radius 100 centered at (0,0)
+   // return  y - Math.sin(x/50)*100  //(x*x+y*y - 10000)/100
+   return x-Math.sin(y/50)*100
+}
+
+// Calculate gradient of the function f
+function gradient2(x, y) {
+    const df_dx = 2 * x / f(x,y)/1000;
+    const df_dy = 2 * y / f(x,y)/1000;
+    return [df_dx, df_dy];
+}
+
+const s=0.01;
+function gradient(x, y) { //need second derivatives
+    var df_dx = (f(x+s,y)-f(x-s,y))*f(x,y)/(2*s)
+    var df_dy = (f(x,y+s)-f(x,y-s))*f(x,y)/(2*s)
+    //var n=Math.pow(df_dx*df_dx+df_dy*df_dy,1)
+    df_dx/=n;
+    df_dy/=n;
+    return [df_dx, df_dy];
+}
+
+// Randomly sprinkle points
+let points = [];
+const numPoints = 200;
+
+for (let i = 0; i < numPoints; i++) {
+    points.push({
+        x: Math.random() * width,
+        y: Math.random() * height
+    });
+}
+
+// Function to update the positions of the points using gradient descent
+function updatePoints() {
+    const learningRate = 0.01;
+
+    points = points.map(point => {
+        const [df_dx, df_dy] = gradient(point.x - width / 2, point.y - height / 2);
+
+        return {
+            x: point.x - learningRate * df_dx,
+            y: point.y - learningRate * df_dy
+        };
+    });
+}
+
+// Function to draw the points on the canvas
+function drawPoints() {
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = 'blue';
+
+    points.forEach(point => {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 2, 0, 2 * Math.PI);
+        ctx.fill();
+    });
+}
+
+// Main function to run the animation
+function animate() {
+    updatePoints();
+    drawPoints();
+    requestAnimationFrame(animate);
+}
+
+// Start the animation
+animate();
+
+        </script>
+</body>
+</html>
+

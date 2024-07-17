@@ -1,0 +1,80 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+<div class="content">
+<h1>Calculus</h1>
+<h2>Differentiation</h2>
+The way differential calculus is implemented is that it works on pure functions such as Sin instead of their instances like Sin(x). Calculus works on two levels. There is the level in terms of the limits. Then, up one level, there are the abstract rules for manipulating derivatives.
+
+<script>
+    createInput("Deriv(Sin)")
+</script>
+
+To find the derivative of something like Sin(Cos(x)), we use the compose operator to write it as Sin o Cos
+
+<script>
+    createInput("Deriv(compose(Sin,Cos))")
+</script>
+
+We can check the multiplication rule for example:
+
+<script>
+    createInput(
+`FORALL(Real.to(Real),F=>FORALL(Real.to(Real),G=>Deriv(times(Real.to(Real),F,G))  ))`)
+</script>
+
+To find the derivative of a function like x^2 Sin(x^3) we write:
+
+<script>
+    createInput(
+`Deriv( times(R2R,power(R2R,Id,2),compose(Sin, power(R2R,Id,3) )  ))`)
+</script>
+
+<h2>Integration</h2>
+Integration is written as
+<script>
+    createInput(
+`Integral(Sin)`)
+</script>
+The limits are implicitly assumed to be from 0 to x. Which means that the integral of 1/(x+a) is undefined for a=0 and integral of sin(x) is 1-cos(x)
+
+<h2>Multi Variable Calculus</h2>
+We can do:
+<script>
+    createInput(
+`PDeriv(Real)(3)(2)(phi)`)
+</script>
+And:
+<script>
+    createInput(
+`Div(3)(phi)`)
+</script>
+And:
+<script>
+    createInput(
+`LaplacianT(Real)(3)(phi)`)
+</script>
+
+We would also like to have \(\nabla\) and such as pure vector operators
+<script>
+   
+    createInput(
+`times.ignore=1;
+times(PDeriv(R)(3),PDeriv(R)(3));
+times.ignore=0
+`)
+</script>
+
+
+$$\sqrt{1}$$
+</div>
+</html>

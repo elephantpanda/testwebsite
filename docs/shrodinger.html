@@ -1,0 +1,42 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+<div class="content">
+<h1>Schrodinger Wave Equation</h1>
+<h2>The wave equation</h2>
+
+We define the wave function is a complex valued function. It is paramaterised by a time variable and some particle data such as the coordinates of a particle, or several particles.
+
+<script>
+    createInput(
+`mu = Var("\\mu",Zmod(4));
+nu = Var("\\nu",Zmod(4));
+tau = Var("\\tau",Zmod(4));
+sigma = Var("\\sigma", Zmod(4));
+psi = Var("\\psi", R.to(Vec(R,3).to(Complex(R))));
+t = Var("t",R);
+x = Var("x",Vec(R,3));
+psi(t)(x);
+psix = FUN(R,u=>psi(u)(x));
+DerivT(CR)(psix)(t);
+LaplacianT(CR)(3).apply(psi(t))(x);
+equals(CR, times(CR, CR.mk(0,1), DerivT(CR)(psix)(t)) ,  LaplacianT(CR)(3).apply(psi(t))(x))
+
+`.replaceAll("\\","\\\\"))
+</script>
+
+Difficult to separate out time and space
+
+
+$$\sqrt{1}$$
+</div>
+</html>

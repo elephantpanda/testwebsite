@@ -1,0 +1,36 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+<div class="content">
+<h1>Dark Energy and Dark Matter</h1>
+<h2>Metric</h2>
+
+The moddified gravity lagrangian is
+
+<script>
+    createInput(
+`
+g=Var("g",Real);
+Lambda=Var("\\Lambda",Real);
+R=Var("R",Real);
+L=Var("\\mathscr{L}",Real);
+
+equals(Real, L , times(Real,Real.Sqrt(g), Real.Sqrt( plus(Real , power(Real, Lambda, 2) , power(Real, R,2)  )  ) ) )
+
+`.replaceAll("\\","\\\\"))
+</script>
+
+
+
+$$\sqrt{1}$$
+</div>
+</html>

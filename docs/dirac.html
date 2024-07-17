@@ -1,0 +1,38 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+<div class="content">
+<h1>Dirac Equation</h1>
+<h2>The wave equation</h2>
+
+We define the wave function is a complex valued function. It is paramaterised by a time variable and some particle data such as the coordinates of a particle, or several particles.
+
+<script>
+    createInput(
+`mu = Var("\\mu",Zmod(4));
+nu = Var("\\nu",Zmod(4));
+alpha = Var("\\alpha",Zmod(4));
+var CScalar = Vec(R,4).to(CR) ;
+psi = Var("\\psi", Vec(CScalar,4));
+x = Var("x",Vec(R,4));
+Psi = Vector.get( CScalar, 4 , psi);
+m = Var("m",CScalar);
+plus(CScalar, PDeriv(CR,4)(mu)(Psi(alpha)), times(CScalar, m, Psi(alpha)))(x)
+`.replaceAll("\\","\\\\"))
+</script>
+
+Difficult to separate out time and space
+
+
+$$\sqrt{1}$$
+</div>
+</html>

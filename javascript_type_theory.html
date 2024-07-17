@@ -1,0 +1,28 @@
+<title>Paul's Dependent Type Theory</title>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<html>
+    <body bgcolor="lightgreen" text="black">
+<font style="font-family:Arial">
+<h2>Paul's Dependent Type Theory © 2024</h2> 
+This website uses Mathjax \(\sqrt{3}\) . Propositions are types. Proofs are functions. Rules are propositions with proofs.<br>
+Simplification acts on terms and types simultaneously.<br>
+<textarea style="width:100%;height:10%" id="input">
+
+</textarea>
+<button onclick="go('input','output')">GO</button><button onclick="cls()">CLS</button><button onclick="simplify()">SIMP</button> <button onclick="fullsimplify()">FULL SIMP</button> 
+<button onclick="ListSymbols()">SYMBOLS</button><button onclick="ToggleMathjax()">TOGGLE MATHJAX</button><button onclick="showVariables()">VARIABLES</button> <br>
+<div style="width:100%;height:80%;border:1px black solid;display:block;overflow-y:scroll;background-color:lightyellow;" id="output"></div>
+<script>
+    var numberWinVariables = Object.keys( window ).length
+</script>
+
+<script src="typetheory.js" />
+<!---     The definitions of variables-->
+<script src = "definitions.js" />
+<script>print("OK")</script>
+
+</font>
+</body>
+</html>

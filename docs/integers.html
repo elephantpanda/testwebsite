@@ -1,0 +1,45 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Integers</h1>
+The integers can be thought of as the natural numbers extended with an element \((-1)\) such that \((-1)^2=1\) \(\mathbb{Z} = \mathbb{N}(a)/\langle a^2=1\rangle\). They can be defined by a pair of natural numebrs.
+
+
+<script>
+    createInput("Int.zero")
+</script>
+
+To create a positive integers and negative integers  as:
+
+<script>
+    createInput("Int.mk(6,0)");
+    createInput("Int.mk(0,7)");
+</script>
+
+For convenience we can also just write the number as a decimal and it will convert it to a natural number.
+
+We can multply two natural numbers together:
+
+<script>
+    createInput(
+`Nat.times(13,42)`)
+</script>
+
+<h3>Internal Representation</h3>
+For speed and efficiency, the internal representation of natural numbers is not <a class="eq2">S(S(S(S(...0))))</a> but uses machine arithmetic.
+
+
+$$\sqrt{1}$$
+</div>
+</html>

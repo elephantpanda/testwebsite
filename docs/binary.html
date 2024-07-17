@@ -1,0 +1,56 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script> ></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Binary numbers</h1>
+The binary numbers are a more compact notation for numbers than the unary representation.
+
+<script>
+    createInput("Bin.zero")
+</script>
+
+To create a  natural number we can write:
+
+<script>
+    createInput("Bit1(Bit0(Bit1(Bit1(Bin.zero))))")
+</script>
+and:
+
+<script>
+    createInput("Bin.zero.by(Bit1).by(Bit0).by(Bit1).by(Bit0)")
+</script>
+
+For convenience we can also just write the number as a decimal and it will convert it to a natural number.
+
+We can add two natural numbers together:
+
+<script>
+    createInput(
+`a=Bit1(Bit0(Bit1(Bit1(Bin.zero))))
+b=Bit1(Bit0(Bit1(Bit1(Bin.zero))))
+Bin.plus(a,b)`)
+</script>
+
+and multiply them:
+
+<script>
+    createInput(
+`a=Bit1(Bit0(Bit1(Bit1(Bin.zero))))
+b=Bit1(Bit0(Bit1(Bit1(Bin.zero))))
+Bin.times(a,b)`)
+</script>
+
+
+$$\sqrt{1}$$
+</div>
+</html>

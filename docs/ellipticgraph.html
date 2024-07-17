@@ -1,0 +1,109 @@
+
+
+<html>
+<body style="padding:0;margin:0">
+
+<canvas id="canvas" width="400" height="400" style="border:1px black solid">
+
+</canvas>
+
+
+<script>
+   
+dc=document.getElementById("canvas").getContext("2d")
+W=document.getElementById("canvas").width
+var s=4.0/(W/2)
+
+const imageData= dc.getImageData(0,0,W,W);
+var data=imageData.data;
+
+var X2 = 0.3
+var Y2 = 0.5
+
+document.onmousemove = function(event)
+{
+    X2 = (event.pageX-W/2)*s
+    Y2 = (event.pageY-W/2)*s
+   // console.log(X2+" "+Y2)
+}
+
+var type=1
+
+function redraw(){
+    //X2+=Math.random()*0.01-0.01/2
+    //Y2+=Math.random()*0.01-0.01/2
+
+
+for(var x=0;x<W;x++){
+    
+    var X1=(x-W/2)*s
+    for(var y=0;y<W;y++){
+        X1=(x-W/2)*s
+
+        var Y1=(y-W/2)*s
+
+        X0=X1
+        Y0=Y1
+
+        var LAMBDA = (Y2-Y1)/(X2-X1)
+
+        var X3 = LAMBDA*LAMBDA - X1-X2
+        var Y3 = -LAMBDA*X3+LAMBDA*X1-Y1
+if(type==2){ //get a and b
+    var D=(X1-X2)
+    X3 = (-Y2*Y2+X2*X2*X2+Y1*Y1-X1*X1*X1)/(X1-X2) //a
+    Y3 = (X1*(X2*X2*X2-Y2*Y2)+Y1*Y1*X2-X1*X1*X1*X2)/(X1-X2) //b
+}
+if(type == 3){//point doubling
+    for(var i=0;i<1;i++){
+        LAMBDA = 3*X1*X1 / (2*Y1)
+        X3 = LAMBDA*LAMBDA - 2*X1
+        Y3 = -LAMBDA*X3+LAMBDA*X1-Y1
+        //X3 = X1*X1-Y1*Y1
+        //Y3 = 2*X1*Y1
+        X3+=X0
+        Y3+=Y0
+        X1=X3 
+        Y1=Y3
+    }
+}
+
+        //X3=X1;Y3=Y1;
+
+        var mag = (Math.atan2(X3,Y3)+Math.PI*4)*30/(2*Math.PI);
+        var amp = Math.sqrt(Math.atanh(X3*X3+Y3*Y3))
+        //amp=Math.log(X3*X3+Y3*Y3)
+        amp=1
+        var f=1
+        data[(y*W+x)*4] =   Math.sin(f*(mag%30) *Math.PI/15)*255 * amp;
+        data[(y*W+x)*4+1] = Math.sin(f*((mag+10)%30) *Math.PI/15)*255 * amp;
+        data[(y*W+x)*4+2] = Math.sin(f*((mag+20)%30) *Math.PI/15)*255 * amp;
+        data[(y*W+x)*4+3] = 255;
+    }
+  /*  var y4 = Math.sqrt(X1*X1*X1+1)
+    var y5 = Math.floor(y4/s+W/2)
+    data[(y5*W+x)*4] = 0
+    data[(y5*W+x)*4+1] = 0
+    data[(y5*W+x)*4+2] = 0
+    var y6 = Math.floor(-y4/s+W/2)
+    data[(y6*W+x)*4] = 0
+    data[(y6*W+x)*4+1] = 0
+    data[(y6*W+x)*4+2] = 0*/
+
+
+}
+dc.putImageData(imageData,0,0)
+
+    dc.beginPath();
+    dc.rect(X2/s+W/2, Y2/s+W/2, 5, 5);
+    dc.stroke();
+}
+
+setInterval(redraw,50)
+
+</script>
+</body>
+
+Given (X2,Y2), for what (X1,Y1) is (X3,Y3)= 0? This is (X3,Y3) + (X2,-Y2)
+
+</html>

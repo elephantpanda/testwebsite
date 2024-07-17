@@ -1,0 +1,110 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+<div class="content">
+<h1>Elliptic Curves</h1>
+<h2>Elliptic Curves</h2>
+
+The way to formulate that the number of rational points on a particular elliptic curve is finite is:<br>
+
+exists N , forall x:Rat, y:Rat , y^2=x^3+4x
+
+<script>
+    createInput(
+`exists(Rat, FUN(Rat,N=>FORALL(Rat,x=>FORALL(Rat, y=> equals(Rat, power(Rat,y,2) , plus(Rat, power(Rat,x,3) , times(Rat, 4, x)    )    ).to( Prop.and( lt(Rat, x ,N   ) , lt(Rat, y, N)  )    )        ))  ))
+
+`.replaceAll("\\","\\\\"))
+</script>
+
+The field is: \( E_{a,b}(\mathbb{Q})  = \Sigma(x:\mathbb{Q})\Sigma(y:\mathbb{Q})(y^2=x^3+ax + b)    \) ?
+
+The sum/product/group formula for points on an elliptic curve is:
+
+negation/inverse : (x,-y)
+
+addition/multiplication: ( lambda^2 - x1 - x2 , -lambda (lambda^2 - x1 - x2) + lambda x1 - y1 ) , with lambda =(y2-y1)/(x2-x1)
+
+A+B+(A*B) = (lambda^2, )
+<br>
+
+<h2>Elliptic Addition</h2>
+Given two complex points we can define Elliptic Operation for which if both point satisfy \( Re(z)^2 = Im(z)^3+ a Re(z) + b  \) for any a,b then the resulting point will also satisfy this relation<br>
+<!---
+
+<script>
+    createInput(
+`"Not correct yet";
+plus (EllipticC(Rat)(1,4)  , EllipticC.mk(Rat,1,4)(2,4)  , EllipticC.mk(Rat,1,4)(-2,4)  )
+`.replaceAll("\\","\\\\"))
+</script>
+This causes a problem with A+A we need a special doubling formula.
+--->
+With \(y^2=x^3+1\). Solutions are \((x,y)=(2,±3), (0,±1) ,(-1,0) \)<br>
+(2,3) + (0,1) = (-1,0)<br>
+(2,3) + (0,-1)= (2,-3)
+<script>
+    createInput(`
+Eop(Complex(Rat) , Complex.mk(Rat)(2,3)  ,Complex.mk(Rat)(0,-1)  )`)
+</script>
+
+<h2>Number of solutions mod p</h2>
+The number of solutions to an equation mod p is useful
+<script>
+createInput(`
+numSol = defineVar("numSol",FUN(Nat, p=> sum(Nat,FUN(Nat, x=>sum(Nat,FUN(Nat, y=>delta(Zmod(p), Zmod.fromNat(p)( sub(Nat, power(Nat,y,2) , plus(Nat, power(Nat,x,3) , times(Nat, 4, x)  )  )    )       )), Nat.sub(p,1)  )) ,Nat.sub(p,1) )));
+Int.mk(numSol.def(7),7)
+
+`)
+
+</script>
+
+<h2>Birch-Schwinger-Dyer Conjecture</h2>
+This relates to the idea that the rank of the group of the elliptic addition is related to the order of the L-function at s=1. If the rank is bigger than zero then the elliptic equation has infinite solutions.
+<br>
+With L(E,p) = prod{p:prime} 1/( 1 - notDivide(N,p)(  (p+1 - numSol(E,p)  )^(-s)   + notDivide(N,p^2) p^(1-2s)        )   )
+<br>
+Another way of stating it is that the rank is given by the following limit. The product should be only over primes:
+<script>
+    createInput(`
+rank = limit(FUN(Nat, k=> Real.divide( Log(  prod( Real,
+FUN( Nat, n=> Real.divide(  Real.fromRat( Rat.mk( Int.mk(numSol(n),0),1) ),
+Real.fromRat( Rat.mk(Int.mk(n,0),1))
+
+)   ),k )
+),
+Log(Log(        Real.fromRat(Rat.mk(Int.mk(k,0),1))           ))
+)))
+    `)
+</script>
+
+<script>
+    createInput(`
+    rank = (FUN(Nat, k=> Real.divide(  Log(prod( Real,
+FUN( Nat, n=> Real.divide(  Real.fromRat( Rat.mk( Int.mk(numSol.def(n),0),1) ),
+Real.fromRat( Rat.mk(Int.mk(n,0),1))
+
+)   ),k
+)),
+Log(Log(        Real.fromRat(Rat.mk(Int.mk(k,0),1))           ))
+)))(30)
+    
+    `)
+    </script>
+
+<h2>Examples</h2>
+Rank 0 curve: \( y^2-x^3-1 =0\)<br>
+Rank 1 curves: \(y^2-x^3+x-1=0\) , \( y^2-x^3-x^2-4=0\) <br>
+Rank 2 curves: \(y^2 -x^3+4x-1=0\)
+
+$$\sqrt{1}$$
+</div>
+</html>

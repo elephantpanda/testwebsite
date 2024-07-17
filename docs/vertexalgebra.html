@@ -1,0 +1,39 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Vertex Algebra</h1>
+A vertex algebra can be thought of as an algebra with an infinite continuum of binary operators. \( u \otimes_z v \)
+
+<script>
+    createInput(
+`x=Var("x",CR);
+y=Var("y",CR);
+z=Var("z",CR);
+u=Var("u",VO);
+v=Var("v",VO);
+w=Var("w",VO);
+equals(VO,VO.times(x,VO.one,v), v );
+
+VO.times(x,u,VO.times(y,v,w));
+VO.times(y,v,VO.times(x,u,w));
+VO.times(y,VO.times(z,u,v),w);
+equals(VO,VO.trans(VO.one),VO.zero);
+equals(VO, sub(VO, VO.trans( VO.times(x,u,v) )  ,  VO.times(x,u,VO.trans(v) )    )  , 
+CDerivT(VO,FUN(CR,x=> VO.times(x,u,v) ))(x) )
+`.replace("\\","\\\\"))
+</script>
+
+$$\sqrt{1}$$
+</div>
+</html>

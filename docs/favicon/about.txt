@@ -1,0 +1,8 @@
+complexGraph( z=> iter(CR, FUN(CR, x=> CR.plus(CR.times(x,x),z) ) , z , 1) )
+
+iter(CR, FUN(CR, x=> CR.plus(CR.times(x,x),z) ) , Complex.mk(Real,3,4) , 1) )
+
+
+iter(CR, FUN(CR, x=> CR.plus(CR.times(x,x),CR.mk(2,3)) ) , Complex.mk(Real,3,4) , 1) 
+
+sum(Nat, FUN(Nat,x=>Nat.plus(x,1)),5)

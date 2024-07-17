@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Linear Algebra</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="doc.css" >
+</head>
+
+
+
+
+<body>
+
+
+<div class="content">
+<h1>Linear Algebra</h1>
+The basic implementation is inherently slow. Can it be sped up using machine arrays? (Also needs to be generalised to any metric spaces with metric \(g_{\mu\nu}\)? )
+<h2>Vectors</h2>
+A abstract n-dimensional vector is to be defined as a belonging to the space \(\mathbb{R}^n \).  (Should we also have vectors belonging to unspecified vector spaces? ) 
+
+<script>
+    createInput("U")
+</script>
+
+We can get a component of the vector like this:
+
+<script>
+    createInput(`mu=Var("\\\\mu",Zmod(3));
+Vector.get(Real,3,U);
+Vector.get(Real,3,U)(mu)`)
+</script>
+which is equivalent to taking the dot product with unit vectors \( U . e_\mu \)
+
+<h2>Dot Product</h2>
+The dot product is defined (over the reals) as:
+<script>
+    createInput(
+`Dot(3, U,V);
+Dot.def(3, U,V)
+ `)
+</script>
+
+<h2>Setting Values</h2>
+(This is a work in progress)<br>
+Using match(?), Vector.append((n+1),value, vector(n)  ) 
+
+<script>
+    createInput("vec = Vector.mk(Nat)(1,7,Vector.mk(Nat)(0,4 , Vector.start(Nat) )  ) ")
+</script>
+
+Or from a list:
+
+<script>
+    createInput(`Vector.fromList(Rat,LIST(1.5,2,3))`)
+</script>
+<!---
+Then the vector with index is written as:
+
+
+<script>
+    createInput(`W = FUN(Zmod(3), n=>List.get(Rat, Zmod.toNat(3,n),toList([10.5,20,30])) );
+W(2)`)
+</script>
+--->
+<h2>Matrices</h2>
+Matrices can be thought of as vectors of vectors. It could be a vector of <i>n</i> rank <i>m</i> vectors to create an \(n\times m\) matrix.
+
+<script>
+    createInput(
+`V1 = VecT.mk(Nat,1)(7,VecT.mk(Nat,0)(4, VecT.start(Nat) ) );
+V2 = VecT.mk(Nat,1)(9,VecT.mk(Nat,0)(3, VecT.start(Nat) ) );
+T = V1.type
+M = Vec.mk(T,1)(V2 ,Vec.mk(T,0)(V1, Vec.start(T) ))
+`)
+</script>
+
+<h3>Square Matrices</h3>
+Square matrices are elements of the group \(GL(\mathbb{F})\).
+
+<h3>Matrix products</h3>
+We should be able to do matrix products on vectors and other matrices.
+
+<h2>Lists</h2>
+<script>
+    createInput("LNext(Nat)(3 , LNext(Nat)(7, LEnd(Nat) )) ")
+</script>
+
+We can also enter list like this:
+<script>
+    createInput(`[Rat.mk(1,3),2,3,4,5];List.get(Nat,3,toList([5,3,2,1]))`)
+</script>
+Make list from a function:
+
+<script>
+    createInput(`List.fromFunc(Nat,FUN(Nat,x=>x),3)`)
+</script>
+
+
+
+<h2>Tensors</h2>
+We can create a basic tensor type. For example a 3-Tensor \(M_{nmo}\) has a type (They differ from vectors of vectors beause they all need to be of the same rank):
+
+<script>
+    createInput(`Tensor(Real,2,3)`)
+</script>
+We might also need tensor-product types \( A\otimes B \)
+<br>
+
+With tensors \( A_{abcd} \) we can do an index-less notation with a basic symbol \(T_n\) which is two swap the outer indices with the nth index.(Therefor \(T_nT_m\) swaps two indices) And the dot product operation. Or \(P_n\) which permutes the outer n indices. Some rules are:
+<br>
+
+
+
+
+The permutations of tensors is basically GROUP THEORY<br>
+
+$$T_n T_n = Id $$
+$$T_n T_n= Id $$
+$$T_{nmo..} = T_n T_m T_o...$$
+
+$$P_n = T_{n1234..}$$
+$$T_2=P_2, T_3 = P_2 P_3$$
+
+This \( A_{abc} B^{dbe} = dot( P_2 A, P_2 B)  \) = tr( ?  ). We note this is equivalent to \( C_{2,2}(A,B) \) where C tells us to contract indices 2 with 2. Thus 
+\( g^{ab} (D_b g_{cd} - D_c g_{db} - D_d g_{cb}) = dot( Id_2 , P_3  o \nabla   -  \nabla - P_3 o P_2 o P_{-3} o \nabla ) \) ?
+
+Or
+
+$$\Gamma = dot( Id^{-1}_2, (T_{123} - T_{231} - T_{312}) o \nabla ) (g)$$
+
+$$\Gamma = dot( Id^{-1}_2, (1 - P_3 - P_3 o P_3 ) o \nabla ) (g)$$
+
+$$ M^T = P_{2} o M$$
+
+$$n \neq m \implies T_{nm} \varepsilon = - \varepsilon $$
+
+Contract index 2 of U with index 3 of V \( dot( P_{2} U, P_{3} V )\). Contract index 5 with index 3 of M \(= ? M )  \)
+
+$$\sqrt{\textcolor{red}{1}}$$
+</div>
+</body>
+</html>

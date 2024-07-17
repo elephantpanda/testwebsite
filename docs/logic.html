@@ -1,0 +1,49 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" ></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="doc.css">
+</head>
+
+
+<body>
+
+
+<div class="content">
+<h1>Logic</h1>
+The basic idea is that given the rules of type theory only true statements can be constructed. We write the relation between a proof (A.proof) and the proposition it is proving (A) as:
+<p class="eq">A.proof : A</p>
+For example, A could be the proposition "All cats have whiskers" and A.proof would be the proof of that. 
+The only statements we can create are definitions of terms and their rules for how they work. These are our axioms. And other terms constructed from these axioms. We might also have a proposition A without a proof. This proposition is called "unproven". An unproven proposition that can be shown to contradict a previously proof is then defined to be false.
+
+<h2>Constructing the Axioms of Logic</h2>
+<h3>True and false</h3>
+Let us introduce two atomic propositions <span class="eq2">True</span> and <span class="eq2">False</span>. <span class="eq2">False</span>, by definition, cannot have a proof. We introduce a proof for <span class="eq2">True</span> which we call <span class="eq2">True.proof</span>. So we have (by definition):
+<p class="eq">True.proof : True</p>
+<script>createInput(`True.proof`)</script>
+<h3>And</h3>
+If we have two proofs A.proof:A and B.proof:B and they are both true we can construct a combined proof of the proposition, <span class="eq2">A ∧ B</span>. We introduce a proof function for this which is simply going to be a pair of proofs:
+<p class="eq">pair  <sub>A,B</sub>(A.proof , B.proof) : A ∧ B</p>
+For example we can constuct in this way a proof, <span class="eq2">(True.proof, True.proof) : True ∧ True</span> but there is no proof of proposition <span class="eq2">True ∧ False</span> for example.
+<script>createInput(`Prop.pair(True,True)(True.proof,True.proof)`)</script>
+<h3>Or</h3>
+If we have a proof of proposition A then it is true that A or B is true where B is some other proposition. It is also true that B or A is true. We can construct these two new statements with the functions <span class="eq2">left</span> and<span class="eq2">right</span>.
+<p class="eq">left  <sub>A,B</sub> (A.proof) : A ∨ B</p>
+<p class="eq">right <sub>A,B</sub>  (B.proof) : A ∨ B</p>
+This allows us to create proofs of propositions <span class="eq2">True ∨ False</span> but not <span class="eq2">False ∨ False</span>
+<br>Example:<br>
+<script>createInput(`Prop.left(True)(False)(True.proof)`)</script>
+<h3>Imply</h3>
+If a proposition A implies another proposition B, it means given A.proof we can construct a B.proof. In other words we can construct a function, f,  which takes in A.proof and returns B.proof. So   <span class="eq2">f(A.proof)=B.proof</span>. Thus we write
+<p class="eq">f : A → B</p>
+We introduce <span class="eq2">f = id<sub>True</sub> = (x:True)⇒(x:True)</span> for the proof of <span class="eq2">True → True</span>.
+<script>createInput(`Prop.id(True)`)</script>
+<h3>Not</h3>
+We define Not as equivalent to the proposition <span class="eq2">A→False</span>
+
+
+
+</div>
+</body>
+</html>

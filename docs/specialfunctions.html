@@ -1,0 +1,54 @@
+<html>
+<head>
+    <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
+    <script src="mathlib.js"></script>
+    <script> 
+        myerf = Module.cwrap('myerf', 'number', ['number'])
+        mygamma = Module.cwrap('mygamma', 'number', ['number'])
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Graphs</h1>
+Some helper functions to draw graphs. These use machine arithmetic
+
+<script>
+    createInput(
+`complexGraph(CR.Cos)
+`)
+</script>
+
+
+Parabola
+<script>
+    createInput(
+`graph(FUN(Real, x=>Real.times(x,x)),-3,3);
+`)
+</script>
+
+<script>
+    createInput(
+`graph(Sin,-3,3);
+`)
+</script>
+
+
+
+//complexGraph(Compose(CR,CR.Cos,CR.Sin))
+//complexGraph(times(CR2CR,CR.Id,CR.Id)) //needs "imply" defined?
+//Mandelbrott:
+//complexGraph(  z=> iter(  FUN(CR, x=> plus(CR,square(CR,x),z) ) , z , 10)  )
+
+$$\sqrt{1}$$
+</div>
+</html>

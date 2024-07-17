@@ -1,0 +1,39 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+
+
+<div class="content">
+<h1>Helper Functions</h1>
+
+<h2>match</h2>
+This takes a term A and a term B and finds a function f such that f(A)=B
+<br>
+<br>Example:<br>
+<script>createInput(`match(two,one);
+equiv(plus(Nat,2,3),plus(Nat,two,three));
+equiv(plus(Nat,two,three),plus(Nat,2,3));
+`)</script>
+
+
+<br>Example:<br>
+<script>createInput(`f=defineVar("f",match(two,one));
+g=f(f(3));
+replaceUsing2(g,f.proof.type)`)</script>
+
+
+<h2>Definitional Equality</h2>
+<script>createInput(`eq2=defineVar("2 eq ",FUN(Nat,n=>equals(Nat,2,n)));
+Prop.id(eq2.def(2),rfl(Nat,2));
+Prop.id(eq2(2),rfl(Nat,2));`)</script>
+
+$$\sqrt{5}$$
+
+</div>
+</html>

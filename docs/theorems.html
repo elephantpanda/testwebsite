@@ -1,0 +1,33 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+<div class="content">
+<h1>Theoreams</h1>
+
+<h2>Fermat's Last Theorem</h2>
+Here we shall simply list some mathematical theorems both proved and unproved.
+Fermat's Last Theorem could be stated as:
+
+<script>
+    createInput(
+`FLT=unproved(FORALL(Nat,x=>FORALL(Nat,y=>FORALL(Nat,z=>FORALL(Nat,n=>equals
+(Nat,Nat.plus(power(Nat,x,n),power(Nat,y,n)), power(Nat,z,n)) .to( gt(Nat,n,2) .to( equals(Nat,Nat.times(Nat.times(x,y),z),0)    ))
+)))))
+`)
+</script>
+
+
+$$\sqrt{1}$$
+
+<center><a href="index.html">Home</a></center>
+</div>
+</html>

@@ -1,0 +1,63 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="doc.css">
+</head>
+
+
+
+<body>
+
+
+
+<div class="content">
+<h1>Topology</h1>
+
+<h2>Spheres</h2>
+The 3-spheres can be defined as the set of points in \(\mathbb{R}^3 \) subject to a restriction.
+
+<script>
+    createInput(`
+circle = Var("\\\\mathbb{S}_2",Type);
+circle.mk = Var("S_2.mk", FORALL(Real, x=> FORALL(Real,y=> Real.equals( Real.plus(power(Real,x,2) ,power(Real,y,2)), Real.one).to(circle)   )  ));
+circle.mk(Real.fromRat(3/5),Real.fromRat(4/5))
+    `)
+</script>
+
+<h2>Subsets</h2>
+We can use the conditional construct to form subsets:
+<script>
+    createInput(`
+isEqual2 = FUN(Nat,x=>Nat.equals(x,2))
+isTwoType =conditional(Nat)(isEqual2);
+isTwoType.mk = conditional.mk(Nat)(isEqual2);
+isTwoType.mk(2)(rfl(Nat)(2));
+    `)
+</script>
+<br>
+So for a circle this is:
+We can use the conditional construct to form subsets:
+<script>
+    createInput(`
+isOnCircle = FUN(Complex(Real), z=>Real.equals( Real.plus(power(Real,realPart(Real,z),2) ,power(Real,imPart(Real,z),2)), Real.one));
+S2   =  conditional(Complex(Real),isOnCircle );
+S2.mk = conditional.mk(Complex(Real),isOnCircle);
+S2.mk( Complex.mk(Real)(3/5,4/5) )
+    `)
+</script>
+
+<h2>Homeomorphism and Isomorphisms</h2>
+Homeomophism and isomorphisms. Consider a torus embedded in 4-dimensions. It can be parameterised by \(\theta\) and \(\phi\).
+
+<h2>Poincaré Conjecture</h2>
+This relates to showing that a simply closed 3-manifold with trivial group is homeomorphic to the 3-sphere. (Homeomorphic is Greek for `same-shape') <br>
+
+
+
+
+$$\sqrt{1}$$
+</div>
+</body>
+</html>

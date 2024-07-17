@@ -1,0 +1,41 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+<div class="content">
+<h1>Quaternion Numbers</h1>
+This is an example of a dependent field. The Quaternion numbers can be over any field such as the Natural numbers, the integers, or the rationals or other Quaternion numbers. Quaternions are the field extension \(\mathbb{H}[\mathbb{F}] = \mathbb{F}(I,J,K)/\langle I^2=J^2=K^2=IJK=-1\rangle\). Where \(IJ=-JI\)
+
+<script>
+    createInput("Quaternion(Rat)")
+</script>
+
+To create a Quaternion number we can write:
+
+<script>
+    createInput("QuaternionMk(Rat)(2,3.5,4,-1.5)")
+</script>
+
+We can multply two Quaternion numbers together:
+
+<script>
+    createInput(
+`a = QuaternionMk(Rat)(2,3.5,4,-1.5)
+b= QuaternionMk(Rat)(5,6.5,1,4)
+times(Quaternion(Rat))(a,b)`)
+</script>
+
+<h2>Hurwitz Quaternions</h2>
+This is the field \( \mathbb{H}[\mathbb{Z}] \cup \mathbb{H}[\mathbb{Z}+\tfrac{1}{2}]   \)
+
+$$\sqrt{1}$$
+</div>
+</html>

@@ -1,0 +1,40 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Modular Arithmetic</h1>
+The natural numbers are the basis of all of mathematics. <button onclick="SHOW_LONG_NATS=!SHOW_LONG_NATS;Nat.zero.notation=SHOW_LONG_NATS?'0':0">Show Long Nats</button>
+
+<script>
+    createInput("Zmod.fromNat(7)(2)")
+</script>
+
+We can add them
+
+<script>
+    createInput(`a=Zmod.fromNat(7)(3);
+b=Zmod.fromNat(7)(5);
+plus(Zmod(7),a,b)`)
+</script>
+
+They are are homomorphism over the naturals(?) With an additional rule \( \phi(n) = \phi(n+7) \)
+
+<script>
+    createInput(`a=Zmod.fromNat(7)(5);
+b=Zmod.fromNat(7)(5+7);
+equals(Zmod(7),a,b)`)
+</script>
+
+$$\sqrt{1}$$
+</div>
+</html>

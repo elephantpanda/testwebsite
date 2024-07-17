@@ -1,0 +1,57 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Polymorphism</h1>
+The way to do polymorphism is with casting. e.g. you want a list of shapes you would:
+
+<script>
+    createInput(
+`LEnd(Shape)
+.by( LNext(Shape,  Shape.of(Circle,Circle.mk(1,0,0)) ) )
+.by( LNext(Shape,  Shape.of(Square,Square.mk(1,1,1)) ) )
+`)
+</script>
+With type inference this becomes:
+<script>
+    createInput(
+`[Shape.of(Circle.mk(1,0,0)), Shape.of(Square.mk(1,0,0)), Shape.of(Triangle.mk(1,0,0))   ]
+`)
+</script>
+
+Or we could use the notation?:
+<script>
+    createInput(
+`[Circle.asShape(Circle.mk(1,0,0)), Square.asShape(Square.mk(1,0,0)), Triangle.asShape(Triangle.mk(1,0,0))   ]
+`)
+</script>
+Either way there are inductive functions \(Circle \rightarrow Shape\)
+
+The Shape is a more general thing than Circle, Square and Triangle. Just like Real is a more general thing than Rational.
+
+<script>
+    createInput(
+`[Real.fromInt(Int.mk(3,0)),Real.fromRat(Rat.mk(1,3))  ]
+`)
+</script>
+
+
+
+//complexGraph(Compose(CR,CR.Cos,CR.Sin))
+//complexGraph(times(CR2CR,CR.Id,CR.Id)) //needs "imply" defined?
+//Mandelbrott:
+//complexGraph( z=> iter(CR, FUN(CR, x=> CR.plus(CR.times(x,x),z) ) , z , 10) )
+
+$$\sqrt{1}$$
+</div>
+</html>

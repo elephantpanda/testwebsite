@@ -1,0 +1,84 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+
+
+<div class="content">
+
+<h1>Errors</h1>
+<script>
+    createInput(`
+    FUN(Nat, x=>times(Nat,x,plus(Nat,x,x)) )
+    `)
+</script>
+<br>
+<script>createInput(`
+f=Var("f",Nat.to(Nat));
+iter(Nat, f,0,3);
+iter(Nat, FUN(Nat,x=>times(Nat,x,2)),0,3)
+`)</script>
+<br>
+<script>createInput(`
+    plus(Real,E,E)
+    `)</script>
+<h1>ETests</h1>
+This takes a term A and a term B and finds a function f such that f(A)=B
+<br>
+<br>Example:<br>
+<script>createInput(`complexMul(Nat)
+`)</script>
+
+<br>
+<script>
+createInput(`FORALL(Type,T=>FORALL(T, x=>x)) `)
+</script>
+</br>
+
+<script>
+createInput(`toCauchy(Real.Exp( Real.fromRat.def(1 )))(100)`)
+</script>
+</br>
+
+Should be `function`
+<script>
+    createInput(`A=FUN(Nat,z=>succ(z))
+
+typeof A(3)`)
+    </script>
+    </br>
+
+//
+Float value not working:
+<script>
+    createInput(`toCauchy(Pi.def)(10)`)
+</script>
+
+<script>
+    createInput( `toCauchy(deriv(FUN(Real, x=>Real.times(x,x)))(Real.fromRat.def(3)))(100)`)
+</script>
+
+TOPOLOGY DEFINE RATIONAL POINTS ON CIRCLE:
+
+import Mathlib
+
+variable (CIRCLE: (forall (a:Rat), forall (b:Rat), (a^2+b^2=(1:Rat))->Type ))
+
+
+def a:= CIRCLE ((3:Rat)/5) ((4:Rat)/5) (by rfl)
+
+
+#print a
+#check a
+
+
+
+$$\sqrt{5}$$
+
+</div>
+</html>
