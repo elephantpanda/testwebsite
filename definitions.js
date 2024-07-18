@@ -132,6 +132,9 @@ var RatMk =Rat.mk = RationalMk = Var("/", Int.to(Int.to(Rational)))  ; Rat.mk.fa
 Rat.one =  RationalMk(1,1)
 Rat.zero = RationalMk(0,1)
 
+Rat.fromInt = FUN(Int,x=>Rat.mk(x,1))
+Rat.fromNat = FUN(Nat,n=>Rat.mk(Int.mk(n,0),1))
+
 var PosRat= Var(blue("ℚ^{+}"),Type) 
 var PosRatMk = PosRat.mk = PosRatMk = Var("/", Nat.to(Nat.to(PosRat)))
 PosRat.one =  RationalMk(1,1)
@@ -328,6 +331,7 @@ SetField(Nat)
 SetField(Rat)
 SetField(Real)
 SetField(Int)
+SetField(PosRat)
 //How to set fields such as Complex[Real]???
 
 

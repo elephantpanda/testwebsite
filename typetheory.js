@@ -488,19 +488,21 @@ class ForAll {
         this.first = x.type
         this.second = f ? f(x) : null
         this.type = this.second ? this.second.type : null //inherits type?//f(x).type
+        //console.log("ForAll Const" + this.first)
     }
     to(x) {
         return new F(this, x)
     }
     appliedTo(X) {
         //var type= this.second.type
-        var result = replace(this.second, this.vari, X)
-        //result.type = replace(this.second.type,this.vari,X)
+        //console.log("Forall replace "+this.vari+" "+X);
+        var result = REPLACE(this.second, this.vari, X)
+        //console.log(result.toString())
+        //result.type = REPLACE(this.second.type,this.vari,X)
         return result
     }
     toString() {
         var tempVari = new C(getNewVariName(), this.first)
-        assigned = []
         var second = this.appliedTo(tempVari) //this.func(tempVari)
 
         //return "\\bigwedge\\limits_{"+this.vari+":"+ this.first+"}"+fill(this.second.toString());
@@ -511,6 +513,7 @@ class ForAll {
 
 
 function FORALL(t,f){
+    //console.log("FORALL "+t);
     return new ForAll( new C(getUniqueName(t),t) , f )
 }
 
@@ -536,6 +539,8 @@ function getUniqueName(){
 }
 
 
+var DOIT=true;
+
 //better if it's Fun(type, f)
 class Fun {
     constructor(x, f) {
@@ -550,14 +555,13 @@ class Fun {
         //inst.vari = new C(getUniqueName(t),t) //Should we have this at all???
         inst.vari = x //new C(getUniqueName(t),t)
         inst.func = "!!!" //f
-        inst.first = inst.vari.type
-        inst.second = f ? f(inst.vari) : null
+        inst.first = x.type
+        inst.second = f ? f(x) : null
         inst.symbol = "??"
 
-        //toString not the best way!!!
-        //if( !equiv ( f(new C("?x?",t)).type  , f(new C("?y?",t)).type)  )
-        if (inst.second.type.toString() != f(new C("?x?", inst.first)).type.toString()) //check if it contains the variable then it is dependent type
-            inst.type = new ForAll(inst.vari, x => f(x).type) //might be slow?
+        //check if it contains the variable then it is dependent type
+        if( ContainsVar(inst.second.type, x ) )
+            inst.type = FORALL(inst.first, x => f(x).type) //new ForAll(inst.vari, x => f(x).type) //might be slow?
         else {
             inst.type = new F(inst.first, inst.second.type)
         }
@@ -567,10 +571,10 @@ class Fun {
     toString() {
         //return "\\lambda_{("+this.vari+":"+this.first +")}." + this.second
         var tempVari = new C(getNewVariName(), this.first)
-        var second = replace(this.second, this.vari, tempVari)
+        var newsecond = REPLACE(this.second, this.vari, tempVari)
 
-        return "(" + tempVari + ":" + this.first + ")⇒" + second
-        //return "("+this.vari+":"+this.first +")⇒"+this.second;
+        return "(" + tempVari + ":" + this.first + ")⇒" + fill(newsecond.toString())
+        //return "("+this.vari+":"+this.first +")⇒"+this.second.toString;
     }
     apply(...args) {
         var N = this
@@ -581,9 +585,10 @@ class Fun {
         return N
     }
     appliedTo(X) {
-        var r = replace(this.second, this.vari, X)
-        if (this.type.appliedTo)
-            r.type = this.type.appliedTo(X)
+        var r = REPLACE(this.second, this.vari, X)
+       //if(this.type.appliedTo) r.type = this.type;
+        if (this.type.appliedTo && DOIT)  r.type = this.type.appliedTo(X)
+        //    r.type = REPLACE(this.type, this.vari,X)   //this.type.appliedTo(X)
         return r
     }
     float(){      
@@ -604,11 +609,17 @@ class Fun {
 }
 
 
+function ContainsVar(A,X){
+    if(A.symbol==X.symbol) return true;   
+    return (A.first && ContainsVar(A.first,X)) || (A.second && ContainsVar(A.second,X))
+}
+
 
 
 //complexGraph( FUN(CR,z=>iter(CR, FUN(CR, x=>CR.plus(CR.times(x,x),z) ) , z , 10) ))
 
 function FUN(t,f){
+   // console.log(t.symbol)
     return new Fun( new C(getUniqueName(t),t) , f )
     //return new Fun( t , f )
 }
@@ -821,9 +832,9 @@ function toComplex(F,n){
 }
 
 function checkEquiv(a,b,varis=[]){
-    assigned=[]
+    RD.assigned=[]
     for(var i=0;i<varis.length;i++)
-    assigned.push(null)
+    RD.assigned.push(null)
     return equiv(a,b,varis)
 }
 
@@ -836,15 +847,15 @@ function defEqual(a,b){
 }
 
 
-function equiv(a,b, varis=[], notused=[], fastnatcount=0){ //assigned=[]
+function equiv(a,b, varis=[], RD=new ReplaceData(), fastnatcount=0){ 
 
     //Check WildCards in b that match with a
     for(var i=0;i<varis.length;i++){
         if(b.symbol==varis[i].symbol){
-            if( equiv(a.type , varis[i].type, varis) //<---could be a problem with dependent types!
-            && ( assigned[i]==null    || equiv(a,assigned[i],[],[]))  ){ //<--- WARNING! a cannot depend on any function variables!!!
-                //print("FOUND " +b.symbol)
-                assigned[i] = a
+            if( equiv(a.type , varis[i].type, varis, RD) //<---could be a problem with dependent types!
+            && ( RD.assigned[i]==null    || equiv(a,RD.assigned[i],[]))  ){ //<--- WARNING! a cannot depend on any function variables!!!
+                //print(i + " FOUND " +b.symbol +"-->"+a)
+                RD.assigned[i] = a
                 return true
             }
             else return false
@@ -857,7 +868,7 @@ function equiv(a,b, varis=[], notused=[], fastnatcount=0){ //assigned=[]
             if(a.symbol == zero.symbol) return b.value+fastnatcount==0
             if( a.kind=="applied" && a.first.symbol==succ.symbol){ 
                 if( b.value==0 ) return false
-                return equiv(a.second,b, varis,assigned, fastnatcount-1 )
+                return equiv(a.second,b, varis,RD, fastnatcount-1 )
             }
             return false
         }
@@ -866,7 +877,7 @@ function equiv(a,b, varis=[], notused=[], fastnatcount=0){ //assigned=[]
             if(b.symbol == zero.symbol) return a.value-fastnatcount==0        
             if(b.kind=="applied" && b.first.symbol==succ.symbol){ 
                 if(a.value==0) return false 
-                return equiv(a,b.second, varis,assigned, fastnatcount+1 )        
+                return equiv(a,b.second, varis,RD, fastnatcount+1 )        
             }
             return false
         }
@@ -879,11 +890,11 @@ function equiv(a,b, varis=[], notused=[], fastnatcount=0){ //assigned=[]
     }
     if(a.kind=="atom" ) return a.symbol==b.symbol 
     if(a.kind=="applied"|| a.kind=="imply" || a.kind=="pair"){  //A(B),  A->B  (A,B)
-        return equiv(a.first,b.first, varis, assigned) && equiv(a.second,b.second, varis, assigned) 
+        return equiv(a.first,b.first, varis,RD) && equiv(a.second,b.second, varis,RD) 
     }
     if(a.kind=="fun" || a.kind=="forall" || a.kind=="exists"){ //x->f(x), Ax,f(x), Ex, f(x)
         var X = new C(getUniqueName(), a.first)
-        return equiv(a.first , b.first) && equiv( a.appliedTo(X) ,b.appliedTo(X) , varis)
+        return equiv(a.first , b.first) && equiv( a.appliedTo(X) ,b.appliedTo(X) , varis, RD)
     }
     console.log("***UNKNOWN KIND "+a.kind+ " of "+a+"****")
     print("***UNKNOWN KIND "+a.kind+ "****")
@@ -898,13 +909,10 @@ function contains(big, small){
     return false;
 }
 
-function cloneInstantiated(obj) {
-    if(obj.kind=="atom") return obj; //no need to clone atoms (Can cause problems if use FORALL wrongly)
-    //var t1=typeof obj;
-    //var newobj=Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
-    var newobj = Object.create(Object.getPrototypeOf(obj), Object.getOwnPropertyDescriptors(obj));
-    //var t2=typeof newobj;
-    //if(t1!=t2)console.log("Type changed "+t1+" to "+t2);
+function cloneInstantiated(obj, forceClone=false) {
+    if(!forceClone && obj.kind=="atom") return obj; //no need to clone atoms (Can cause problems if use FORALL wrongly)
+    const newobj = Object.create(Object.getPrototypeOf(obj));
+    Object.assign(newobj, obj);
     return newobj;
 }
 
@@ -912,70 +920,54 @@ function cloneInstantiated(obj) {
 //---------REPLACE DOESN'T CHECK TYPES!!!! e.g. F->(x:F)->(y:F)-> (x+y:F=y+x:F    ) DOES IT NEED TO?------------------//
 var replacementsFound=0
 
-function replace(big, small, newterm ,varis=[]){  //, assigned=[]
-    //clone assigned?
-    //clearArray(assigned)
-    var temp = assigned.slice()
-    if(equiv(big,small, varis, assigned)) {
+function REPLACE(big, small, newterm ,varis=[], RD=new ReplaceData()){
+    var temp = RD.assigned.slice()
+    if(equiv(big,small, varis,RD)) {
         replacementsFound ++
         return newterm; //<----Let's not clone it. Will this be problem???
         //cloneInstantiated(newterm) //<--- do replacement here???
-    }else assigned=temp
+    }else RD.assigned=temp
     //Shouldn't match things in functions(?)
     if(big.kind=="applied"|| big.kind=="imply" || big.kind=="pair" || big.kind=="rule"){ //forall needed?
         var newbig = cloneInstantiated(big)
-        newbig.first = replace(big.first, small , newterm,varis,assigned);
-        newbig.second =  replace(newbig.second, small, newterm,varis,assigned);
+        newbig.first = REPLACE(big.first, small , newterm,varis,RD);
+        newbig.second =  REPLACE(newbig.second, small, newterm,varis,RD);
         return newbig;
     }
     if(big.kind=="forall" || big.kind=="fun"){
-        //var newtype =big.first;// replace(big.first, small, newterm,varis,assigned);
+        //var newtype =big.first;// REPLACE(big.first, small, newterm,varis,RD);
        //***********DUBIOUS KEEPING THE VARI NAME THE SAME BUT CHANGING IT'S TYPE*****  
-        var vari= cloneInstantiated(big.vari);//new C(getUniqueName(), newtype)
-        vari.type = replace(big.vari.type, small, newterm,varis,assigned)
-        var S = replace(big.appliedTo(vari), small, newterm,varis,assigned);
-        
+        var vari= cloneInstantiated(big.vari, true);//new C(getUniqueName(), newtype)      
+        var S = REPLACE(big.appliedTo(vari), small, newterm,varis,RD); //appliedTo overrides vari type!!!
+        vari.type = REPLACE(big.vari.type, small, newterm,varis,RD)
         //if(big.type.appliedTo)
-        //S.type = replace(big.type, small, newterm,varis,assigned)
-        //S.type=Nat
+        //    S.type = REPLACE(big.type, small, newterm,varis,RD) //infinite loop
+        //S.type=Nat       
         var newbig = big.kind=="fun" ?
-         new Fun(vari, x=>replace(S, vari, x)) :   new ForAll(vari, x=>replace(S, vari, x))     
+         new Fun(vari, x=>REPLACE(S, vari, x)) :   new ForAll(vari, x=>REPLACE(S, vari, x))     
         
          return newbig;
-/*
-   var newbig = cloneInstantiated(big)
-        var newvaritype = replace(newbig.first, small, newterm,varis,assigned);
-        var vari=new C(getUniqueName(),newvaritype)       
-        var newsecond = replace(newbig.appliedTo(vari), small, newterm,varis,assigned);
-
-        if(big.kind=="forall") newbig.type = newsecond.type
-        else newbig.type = replace( newbig.type.second , small, newterm,varis,assigned);  
-        newbig.vari = vari
-        newbig.first= vari.type
-        newbig.second = newsecond 
-        return newbig
-*/
     }
     if(big.kind!="atom")
-    print("kind not found in replace "+big.kind +" "+fill(big.toString()))
+        print("kind not found in replace "+big.kind +" "+fill(big.toString()))
     return cloneInstantiated(big)
 }
 
 
-function findMatch(big, small, newterm ,varis=[]){  //, assigned=[]
-    var temp = assigned.slice()
-    if(equiv(big,small)){//, varis, assigned)) {
+function findMatch(big, small, newterm ,varis=[]){  //, RD.assigned=[]
+    var temp = RD.assigned.slice()
+    if(equiv(big,small)){//, varis,RD)) {
         return true
-    }else assigned=temp
+    }else RD.assigned=temp
     if(big.kind=="applied"|| big.kind=="imply" || big.kind=="pair" || big.kind=="rule"){ 
-        return  findMatch(big.first, small)// , newterm,varis,assigned)
-            ||  findMatch(big.second, small)//, newterm,varis,assigned)
+        return  findMatch(big.first, small)// , newterm,varis,RD)
+            ||  findMatch(big.second, small)//, newterm,varis,RD)
     }
     if(big.kind=="forall" || big.kind=="fun"){
         //var newbig = cloneInstantiated(big)
-        var firstmatch = findMatch(big.first, small)//, newterm,varis,assigned);
+        var firstmatch = findMatch(big.first, small)//, newterm,varis,RD);
         //var vari=new C(getUniqueName(), newtype)
-        return firstmatch || findMatch(big.second, small)//, newterm,varis,assigned); 
+        return firstmatch || findMatch(big.second, small)//, newterm,varis,RD); 
     }
     if(big.kind!="atom")
     print("kind not found in replace "+big.kind +" "+fill(big.toString()))
@@ -985,7 +977,7 @@ function findMatch(big, small, newterm ,varis=[]){  //, assigned=[]
 
 
 /*
-function replaceFunc(big, small){  //, assigned=[]
+function replaceFunc(big, small){  //, RD.assigned=[]
     if(equiv(big,small)) {
         replacementsFound ++
         return x=>x;
@@ -1009,30 +1001,39 @@ function replaceFunc(big, small){  //, assigned=[]
 
 
 
-var assigned=[]
+//var RD.assigned=[]
 var debug=false
+
+class ReplaceData{
+    constructor(){
+        this.assigned=[]
+    }
+}
+
 
 function replaceUsing(big, rule){
     var varis=[]
-    assigned=[]
-   var root=rule
+    var RD = new ReplaceData()
+    var root=rule
      while(root.kind=="fun"){
         varis.push(root.vari)
         root = root.second       
         //root = root.appliedTo(root.vari)
-        assigned.push(null)
+        RD.assigned.push(null)
     }
     //print(fill(root.toString()))
     //if(!findMatch(big,root.first)) return big
-    var result= replace(big, root.first, root.second, varis)    
+    //***We sent RD.assigned by ref */
 
-    if(assigned.length==0 || !assigned.includes(null) ){
+    var result = REPLACE(big, root.first, root.second, varis,RD)    
 
-        var resultType= replace(big.type, root.first, root.second, varis)
+    if(RD.assigned.length==0 || !RD.assigned.includes(null) ){
+
+        var resultType= REPLACE(big.type, root.first, root.second, varis,RD)
 
         for(var i=0;i<varis.length;i++){
-            result = replace(result,varis[i] , assigned[i] )
-            resultType = replace(resultType,varis[i] , assigned[i] )
+            result = REPLACE(result,varis[i] , RD.assigned[i] )
+            resultType = REPLACE(resultType,varis[i] , RD.assigned[i] )
         }
         result.type= resultType
     }//else result = big
@@ -1043,13 +1044,14 @@ function replaceUsing(big, rule){
 function replaceUsing2(big, rule){
     
     var varis=[]
-    assigned=[]
+    var RD=new ReplaceData()
+    RD.assigned=[]
    var root=rule
      while(root.kind=="forall"){
         varis.push(root.vari)
         root = root.second
         //root = root.appliedTo(root.vari) //<--- this is the slow bit!!
-        assigned.push(null)
+        RD.assigned.push(null)
     }
 
     if(root.kind!="applied" || root.first.first.first.symbol!=equals.symbol) { //equals F, x , y A(A(A(equals,F),x),y)
@@ -1058,18 +1060,25 @@ function replaceUsing2(big, rule){
     var type=root.first.first.second
     var x=root.first.second
     var y=root.second
+
+    //if(!ContainsVar(big,x)) return big;
+    //quick check:
+    //for(var i=0;i<varis.length;i++){
+    //    if( ! ContainsVar(big,varis[i])) return big;
+   // }
+
     
     //var b = cloneInstantiated(big)
     //if(!findMatch(big,x)) return big
-    var result= replace(big, x,y, varis)
+    var result= REPLACE(big, x,y, varis, RD)
 
     //WARNING--breaks if there is unused FORALL(n=> in rule---
     
-    if(assigned.length==0 || !assigned.includes(null) ){        
-        var resultType= replace(big.type, x,y, varis)
+    if(RD.assigned.length==0 || !RD.assigned.includes(null) ){        
+        var resultType= REPLACE(big.type, x,y, varis, RD)
         for(var i=0;i<varis.length;i++){
-            result = replace(result,varis[i] , assigned[i] )
-            resultType = replace(resultType,varis[i] , assigned[i] )
+            result = REPLACE(result,varis[i] , RD.assigned[i] )
+            resultType = REPLACE(resultType,varis[i] , RD.assigned[i] )
         }
         result.type= resultType
     }//else result = b
@@ -1189,7 +1198,7 @@ function ApplyUnappliedFunctions(big){
         //var newbig = cloneInstantiated(big)
         var s = ApplyUnappliedFunctions(big.appliedTo(vari))
         //newbig.second =  ApplyFastNats(big.second)
-        return big.kind=="forall"? FORALL(newtype,x=>replace(s,vari,x)): FUN(newtype,x=>replace(s,vari,x))
+        return big.kind=="forall"? FORALL(newtype,x=>REPLACE(s,vari,x)): FUN(newtype,x=>REPLACE(s,vari,x))
     }
     if(big.kind!="atom")
     print("kind not found in replace "+big.kind)
@@ -1223,7 +1232,7 @@ function ApplyFastNats(big){
         
     }
     //S(FastNats) = FastNats+1 //A[S,FastNat]
-   // if( equiv(big , succ(X),[X] ) && assigned[0].symbol==FatNat.symbol ){
+   // if( equiv(big , succ(X),[X] ) && RD.assigned[0].symbol==FatNat.symbol ){
     if(big.kind == "applied" && big.first.symbol==succ.symbol && big.second.symbol==FastNat.symbol){
         var val = big.second.value + BigInt(1)
         var result = new Var(FastNat.symbol, Nat)
@@ -1255,7 +1264,7 @@ function ApplyFastNats(big){
         //var newbig = cloneInstantiated(big)
         var s = ApplyFastNats(big.appliedTo(vari))
         //newbig.second =  ApplyFastNats(big.second)
-        return big.kind=="forall"? FORALL(newtype,x=>replace(s,vari,x)): FUN(newtype,x=>replace(s,vari,x))
+        return big.kind=="forall"? FORALL(newtype,x=>REPLACE(s,vari,x)): FUN(newtype,x=>REPLACE(s,vari,x))
     }
     if(big.kind!="atom")
     print("kind not found in replace "+big.kind)
@@ -1273,6 +1282,7 @@ function SIMP(z, M=1, fullsimp=false){
     var last=null
     //alert(fullsimp)
     for(var i=0;i<M || fullsimp;i++){ //realPartRule,
+        if(USE_FASTNAT)
         z= ApplyFastNats(z)
        // z=RW2(z,[sqrtSquare])
 
@@ -1399,7 +1409,7 @@ function SubAll(Bproof, A){
 function matchOld(A,B){
     //var vari=new C(getUniqueName(),B.type)
     replacementsFound = 0
-    //F=replace(A,B,vari)
+    //F=REPLACE(A,B,vari)
     var F=replaceFunc(A,B)
     if(replacementsFound ==0){
         print(red("No matches found"))
@@ -1413,12 +1423,12 @@ function matchOld(A,B){
 function match(A,B){
     var vari=new C(getUniqueName(),B.type) //Since this is unique to our new function it may be fine to use?
     replacementsFound = 0
-    var F=replace(A,B,vari)
+    var F=REPLACE(A,B,vari)
     if(replacementsFound ==0){
         print(red("No matches found"))
         //return ErrorObject
     }
-    return FUN(B.type,x=>replace(F,vari,x) )
+    return FUN(B.type,x=>REPLACE(F,vari,x) )
 }
 
 /*
