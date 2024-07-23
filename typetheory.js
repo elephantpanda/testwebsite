@@ -28,6 +28,7 @@ function createInput(text ,element){
     <button onclick="fullsimplify('output${inputID}')">SIMP</button>
     <button onclick="simplify('output${inputID}')">SIMP ONCE</button>
     <button onclick="tofloat('output${inputID}')">TO FLOAT</button>
+    <button onclick="showEqGraph('output${inputID}')">EQ GRAPH</button>
     <div id="output${inputID}" class="outputbox"></div>
     `
     if(element) element.innerHTML+=s;
@@ -47,7 +48,7 @@ function dir(obj){
     var keys = [];
     var s=""
     for(var key in obj){
-      output.innerHTML+=key+"<br>"
+      output.innerHTML+=key+" ("+(typeof obj[key])+")<br>"
     }
  }
 
@@ -157,6 +158,20 @@ function toList(list ,type=null){
     }
     return L
 }
+/*
+function toFastList(list, type=null){
+    if(type==null){
+        var L0=list[0];
+        if(typeof L0 =='number') L0 = guessNumberType(L0)  
+        type=L0.type
+    }
+    var L=LEnd(type)
+    for(var i=0;i<list.length;i++){
+        L=LNext(type, list[i],L)
+    }
+    return L
+}*/
+
 function LIST(...args){
     return toList(args)
 }
@@ -181,6 +196,11 @@ function tofloat(outputName){
     output=document.getElementById(outputName)
     result = result.float()
     output.innerHTML+=result
+}
+
+function showEqGraph(outputName){  
+    output=document.getElementById(outputName)
+    eqGraph(result)
 }
 
 function simplify(outputName){  
@@ -282,6 +302,11 @@ function Var(x,y, def=false){
     }
     var result = new C(x,y)
     dict[x] = result
+    if(!window[x])
+        window[x] = result; //<<----experimental
+    else{
+       // console.log(x+" is already a variable!");
+    }
     return result
 }
 
@@ -325,13 +350,13 @@ function ListSymbols(){
 }
 var Type3= orange("\\mathscr{T3}")
 var Type2= new C(orange("\\mathscr{T2}"),Type3)
-var Type1=new C(orange("\\mathscr{T}"),Type2)
-var Type=new C(orange("\\mathscr{T}"),Type1)
+var Type1=new C("Type1",Type2); Type1.notation = orange("\\mathscr{T1}");
+var Type=new C("Type",Type1) ; Type.notation = orange("\\mathscr{T}");
 
 var ErrorMessage =new C(red("ERROR"),Type)
-var ErrorObject = new C(red("⚠"),ErrorMessage)
+var ErrorObject = new C("⚠",ErrorMessage); ErrorObject.notation=red("⚠");
 
-var Prop= new C(pink("Prop"),Type)
+var Prop= new C("Prop",Type) ;Prop.notation=pink("Prop");
 
 var wilds={}
 
@@ -374,71 +399,102 @@ Exists.prototype.toString = function(){
 
 
 
-function Applied(a,b,t){
-    const inst = function(...args){
-        return inst.apply(...args);
+class Applied {
+    constructor(a, b, t) {
+        const inst = function (...args) {
+            return inst.apply(...args)
+        }
+
+        inst.first = a
+        inst.second = b
+        inst.type = t
+        inst.kind = "applied"
+        inst.posfix = false
+        inst.notation = null
+        inst.symbol = "∘"
+
+        Object.setPrototypeOf(inst, Applied.prototype)
+        return inst
     }
-
-    inst.first=a;
-    inst.second=b;
-    inst.type=t
-    inst.kind="applied"
-    inst.posfix=false;
-    inst.notation=null
-
-    Object.setPrototypeOf(inst, Applied.prototype)
-    return inst
-}
-
-Applied.prototype.to = function(x){
-    return new F(this,x)
-}
-
-Applied.prototype.apply=function(...args){
-    var N=this
-    for(var i=0;i<args.length;i++){
-        N=APPLY(N,args[i])
+    to(x) {
+        return new F(this, x)
     }
-    return N
-}
-Applied.prototype.by = function(f){
-    return f(this);
+    apply(...args) {
+        var N = this
+        for (var i = 0; i < args.length; i++) {
+            N = APPLY(N, args[i])
+        }
+        return N
+    }
+    by(f) {
+        return f(this)
+    }
+    float() {
+        var firstValue = this.first.float()
+        var secondValue = typeof this.second.float == 'function' ? this.second.float() : null
+        // if(!firstValue) console.log("No getFast on" + fill(this.first.toString())+" "+this.first.kind)
+        // if(!secondValue) console.log("No getFast on" + fill(this.second.toString())+" "+this.second.kind)
+        if (typeof firstValue != 'function') {
+            //console.log(fill(this.first.toString())+" not a function  ")
+            return null
+        }
+        //console.log(this.kind+","+this.second.kind+" "+this.second.symbol+" ("+secondValue+")")
+        return firstValue(secondValue)
+    }
+    fastValue() {
+        console.log("HELLO")
+    }
+    toString() {
+        if (this.notation) return this.notation
+        var firstString = this.first.toString()
+        var secondString = this.second.toString()
+        if (typeof firstString == 'function') return firstString(secondString, this.second)
+
+
+        if (this.first.postfix)
+            return (this.second.kind == "applied" ? "(" + secondString + ")" : secondString + " ") + this.first
+        else {
+            if (this.first.kind != "fun")
+                return firstString + "(" + fill(secondString) + ")"
+
+            else
+                return "(" + firstString + ")(" + fill(secondString) + ")"
+            //return firstString+ (this.second.kind=="applied"?"("+ secondString+")" :" "+ secondString  )
+        }
+    }
 }
 
-Applied.prototype.float = function(){
-    var firstValue = this.first.float()
-    var secondValue = typeof this.second.float=='function'? this.second.float() : null
-   // if(!firstValue) console.log("No getFast on" + fill(this.first.toString())+" "+this.first.kind)
-   // if(!secondValue) console.log("No getFast on" + fill(this.second.toString())+" "+this.second.kind)
-   if(typeof firstValue!='function'){
-        //console.log(fill(this.first.toString())+" not a function  ")
-        return null
-   }
-   //console.log(this.kind+","+this.second.kind+" "+this.second.symbol+" ("+secondValue+")")
-    return firstValue(secondValue);
+
+class AppliedList{
+    constructor(){
+        this.first=null
+        this.second=[]
+        this.symbol="ApplyTo"
+        this.color="lightgreen";
+        this.kind="AL";
+        this.type=Type;
+    }
+    toString(){
+        var result = this.first.toString() + "(";
+        for(var i=0;i<this.second.length;i++){
+           result+=fill( this.second[i].toString());
+           if(i<this.second.length-1) result+=",";
+        }
+        return result+")";
+    }
 }
 
-Applied.prototype.fastValue = function(){
-    console.log("HELLO")
+function toAppliedList( B ){
+    var A = new AppliedList();
+    while(B.kind == "applied"){
+        A.second.unshift(B.second)
+        B = B.first;
+    }
+    A.first = B;
+    return A;
 }
 
-Applied.prototype.toString = function(){
-    if(this.notation) return this.notation
-    var firstString = this.first.toString()
-    var secondString = this.second.toString()
-    if(typeof firstString =='function') return firstString(secondString, this.second)
-    
 
-   if(this.first.postfix)
-        return  (this.second.kind=="applied"?"("+ secondString+")" : secondString+" "  ) + this.first
-   else {
-    if(this.first.kind!="fun")
-    return firstString+ "("+ fill(secondString)+")" ;
-else
-return "("+firstString+ ")("+ fill(secondString)+")" ;
-    //return firstString+ (this.second.kind=="applied"?"("+ secondString+")" :" "+ secondString  )
-   }
-}
 
 function showRealSeries(f){
     var s="\\{";
@@ -461,6 +517,7 @@ class F {
         this.first = a
         this.second = b
         //convenience:
+        this.symbol = "→";
         this.func = "!!!" //_ => this.second
         this.type = b.type //(Use second type)
     }
@@ -487,6 +544,8 @@ class ForAll {
         this.func = "!!!!!!" //f
         this.first = x.type
         this.second = f ? f(x) : null
+        this.symbol = "∀"
+        this.color="orange"
         this.type = this.second ? this.second.type : null //inherits type?//f(x).type
         //console.log("ForAll Const" + this.first)
     }
@@ -523,6 +582,12 @@ function marks(n){
     return s;
 }
 
+function getSimpleVariName(){
+    var result = String.fromCharCode(97 + tempNum%26)+marks(Math.floor(tempNum/26));
+    tempNum++;
+    return result;
+}
+
 
 function getNewVariName(t){
     var result="??"
@@ -557,7 +622,8 @@ class Fun {
         inst.func = "!!!" //f
         inst.first = x.type
         inst.second = f ? f(x) : null
-        inst.symbol = "??"
+        inst.symbol = "⇒"
+        inst.color = "cyan";
 
         //check if it contains the variable then it is dependent type
         if( ContainsVar(inst.second.type, x ) )
@@ -646,8 +712,11 @@ function print(a){
 
 function tryToConvertNumber(A,b){ //convert javascript-numerical b to type A
     if(A.symbol==Nat.symbol ) b = N(b)
-    else  if(A.symbol==Int.symbol) b = toInt(b)
-    else  if(A.symbol==Rational.symbol) b = toRat(b)
+    else if(A.symbol==Int.symbol) b = toInt(b)
+    else if(A.symbol==Rational.symbol) b=toRat(b)
+    else if(A.symbol==Float64.symbol) b=toFloat64(b)
+    else if(A.symbol==Float32.symbol) b=toFloat32(b)
+    else if(A.symbol==Float16.symbol) b=toFloat16(b)
     else if(A.symbol==Real.symbol) b=toReal(b)
     else if( equiv(A, R2R) ) b=toConstFunc(b)
     else if(A.kind=="applied"){
@@ -817,6 +886,22 @@ function toRat(n){
     }
 }
 
+function toFloat64(n){
+    var result = new C("{"+n+"}"+subscript("f64"), Float64)
+    result.value = n;
+    return result;
+}
+function toFloat32(n){
+    n = new Float32Array([n])[0];
+    var result = new C("{"+n+"}"+subscript("f32"), Float32)//n.toPrecision(8)
+    result.value = n
+    return result;
+}
+function toFloat16(n){
+    var result = new C("{"+n+"}"+subscript("f16"), Float16) //n.toPrecision(4)
+    result.value = n
+    return result;
+}
 
 function toReal(n){
     var num = toRat(n)
@@ -949,7 +1034,7 @@ function REPLACE(big, small, newterm ,varis=[], RD=new ReplaceData()){
          return newbig;
     }
     if(big.kind!="atom")
-        print("kind not found in replace "+big.kind +" "+fill(big.toString()))
+        print(normal("kind not found in replace "+big.kind +" ")+fill(big.toString()))
     return cloneInstantiated(big)
 }
 
@@ -1513,19 +1598,28 @@ function graphT(T, F, xmin,xmax  ){
 //toCauchy(deriv(Real.Exp)(Real.fromRat.def(3)))(100)
 //sum(Rat, FUN(Nat, n=> Rat.mk(Int.one, Int.mk( factorial(n) ,0) ) ) ,10)  
 
-function newCanvas(W){
+function newCanvas(W,H){
+    if(!H) H=W;
     var canvas=document.getElementById(`canvas${currentID}`)
-
-    if(!canvas){
-        var div = document.createElement('canvas');
-        div.id = `canvas${currentID}`;
+    var RATIO = window.devicePixelRatio
+    //if(!canvas){
+        var div = canvas?canvas:document.createElement('canvas');
+        if(!canvas)div.id = `canvas${currentID}`;
         div.width=W
-        div.height=W
+        div.height=H;
         div.style="border:1px black solid"
+        div.style.width = W/RATIO;
+        div.style.height = H/RATIO;
+        if(!canvas){
         insertAfter(output,div)  
+        var br =  document.createElement('br');
+        insertAfter(div,br);
+
         canvas=document.getElementById(`canvas${currentID}`)
-    }
+        }
+    //}
     dc=canvas.getContext("2d")
+    //fix_dpi(canvas)
     return dc
 }
 function clearCanvas(data,W){
@@ -1651,11 +1745,11 @@ function scalarPlot(F, center, scale  ){
     return 0;
 }
 
-function clearCanvasAll(dc,W,col){
+function clearCanvasAll(dc,W,H,col){
     f=dc.fillStyle;
     dc.fillStyle=col;
     dc.beginPath();
-    dc.rect(0,0,W,W)
+    dc.rect(0,0,W,H)
     dc.fill();
     dc.fillStyle=f;
 }
@@ -1666,7 +1760,7 @@ function plot3d( F ){
     var G=40;
 
     dc=newCanvas(W);
-    clearCanvasAll(dc,W,"black")
+    clearCanvasAll(dc,W,W,"black")
 
 
     var SC=W/G/6;
@@ -1705,8 +1799,8 @@ function plot3d( F ){
 
 }
 
-function plotBitmap( C,W,H, L ){
-    W0=400
+function plotBitmap( C,W,H, L ,f=255){
+    W0=W
     //if(C!=3) return;
     dc=newCanvas(W0);
     imageData = dc.getImageData(0,0,W,H)
@@ -1716,7 +1810,7 @@ function plotBitmap( C,W,H, L ){
     for(var c=0;c<C;c++){
         for(x=0;x<W;x++){
             for(y=0;y<H;y++){ 
-                data[ 4*(x+y*W)+c ] = L[n++]*255
+                data[ 4*(x+y*W)+c ] = L[n++]*f
             }
             //data[ 4*(w+h*W)+3 ] = 255
         }
@@ -1738,7 +1832,7 @@ function drawGraph(M,dim=2){ //M=Adjacenct matrix
     W=400
     //if(C!=3) return;
     dc=newCanvas(W);
-    clearCanvasAll(dc,W,"white")
+    clearCanvasAll(dc,W,W,"white")
 
     var P=[] //points
     var L=[] //lines
@@ -1803,3 +1897,157 @@ function drawGraph(M,dim=2){ //M=Adjacenct matrix
     
 
 }
+
+
+
+
+
+var nodeList=[]
+var edgeList=[]
+var offsets=[]
+var variDict={}
+function getNodeList(exp,parent,L){
+   // if(L>50) return;
+    //if(nodeList.includes(exp)) return;
+    if(!exp) {
+        console.log("exp undefined");
+        return;
+    }
+    if(L>=offsets.length)offsets.push(0)
+    var AL=false;
+    if(exp.kind=="applied") {
+        exp = toAppliedList(exp)
+        console.log(exp)
+        AL=true;
+    }
+    if(exp.kind=="AL") AL=true;
+    var isNew = !nodeList.includes(exp);
+    if(isNew){
+        exp.x = Math.floor((offsets[L])*50*scale)
+        exp.y = Math.floor(L*50*scale)
+        if(exp.symbol[0]=="@") {
+            exp.color="pink";
+            variDict[exp.symbol] = getSimpleVariName();
+        }
+        nodeList.push(exp)
+        offsets[L]++;
+        exp.xID=offsets[L];
+        exp.yID=L;
+    }
+    if(parent) edgeList.push([parent,exp]);
+    if(!isNew) return;
+    if(exp.kind=="fun" || exp.kind=="forall"){
+        getNodeList(exp.vari,exp,L+1)
+    }else
+    if(exp.first){
+        if(exp.first.kind=="atom" && AL) exp.symbol = exp.first.symbol;
+        else getNodeList(exp.first,exp,L+1)
+    }
+    if(exp.second) {
+        if(AL){for(var i=0;i<exp.second.length;i++) getNodeList(exp.second[i],exp,L+1)}
+        else getNodeList(exp.second,exp,L+1)
+    }
+}
+
+
+
+
+
+/*
+function fix_dpi(canvas) {
+    dpi = window.devicePixelRatio;
+//create a style object that returns width and height
+  let style = {
+    height() {
+      return +getComputedStyle(canvas).getPropertyValue('height').slice(0,-2);
+    },
+    width() {
+      return +getComputedStyle(canvas).getPropertyValue('width').slice(0,-2);
+    }
+  }
+//set the correct attributes for a crystal clear image!
+  canvas.setAttribute('width', style.width() * dpi);
+  canvas.setAttribute('height', style.height() * dpi);
+}*/
+var scale = 1;
+
+function eqGraph(exp){
+    scale=1.25 * window.devicePixelRatio;
+    nodeList=[]
+    edgeList=[]
+    offsets=[]
+    
+    getNodeList(exp,null,0)
+    //console.log("DONE");return;
+    var maxX = Math.max(...offsets)
+    //space them out
+    for(var i=0;i<nodeList.length;i++){
+        A = nodeList[i]
+        A.x = Math.floor( (maxX * 50 / 2 + (A.xID-0.5 - offsets[A.yID]/2) * 50)*scale);
+        //A.x = Math.floor((A.xID-0.5) *  ( maxX * 50 / offsets[A.yID] )*scale)
+    }
+
+    var W = Math.floor((maxX * 50+25) * scale)
+    var H = Math.floor(((offsets.length-1) * 50+25)*scale)
+    //if(C!=3) return;
+    dc=newCanvas(W,H);
+    dc.resetTransform()
+    clearCanvasAll(dc,W,H,"white")
+    console.log("nodes",nodeList.length);
+    console.log("edges",edgeList.length)
+
+    
+    //draw nodes
+    var s=Math.floor(7*scale)+0.5;
+    var t=Math.floor(21*scale)+0.5;
+    var k=Math.floor(40*scale);
+
+    //console.log(scale)
+
+    dc.font = Math.floor(10*scale)+"px Arial";
+
+    dc.translate(25,25)
+    dc.lineWidth = 1;
+    //edges
+    dc.beginPath();
+    for(var i=0;i<edgeList.length;i++){
+        var C =edgeList[i];
+        dc.moveTo(C[0].x, C[0].y)
+        //dc.lineTo(C[1].x, C[1].y)
+        dc.bezierCurveTo(C[0].x, C[0].y+k,C[1].x, C[1].y-k,C[1].x, C[1].y)
+    }
+    dc.stroke();   
+
+    dc.fillStyle="yellow";
+    //dc.beginPath();
+    for(var i=0;i<nodeList.length;i++){
+        var A=nodeList[i];
+        dc.fillStyle= A.color?A.color:(A.symbol=="FastNat"?"orange":"yellow");
+        dc.fillRect(A.x-t, A.y-s,t*2,2*s)
+        dc.strokeRect(A.x-t, A.y-s,t*2,2*s)
+    }
+    //dc.fill();
+    //dc.stroke();
+    dc.textAlign = "center";
+    dc.textBaseline = "middle"
+    dc.fillStyle="black";
+    dc.beginPath();
+    for(var i=0;i<nodeList.length;i++){
+        var A=nodeList[i];
+        var s=A.symbol=="FastNat"?A.value:(A.symbol[0]=="@"?variDict[A.symbol]: A.symbol);
+        dc.fillText(s,A.x, A.y )
+    }
+    dc.fill();
+
+//test
+/*
+var tex = "\\frac{2}{3}";
+console.log(MathJax)
+var svg = MathJax.tex2svg(tex);
+var svg = svg.childNodes[0]
+var ssvg = new XMLSerializer().serializeToString(svg);
+var base64 = "data:image/svg+xml;base64, " + window.btoa(unescape(encodeURIComponent(ssvg)));
+*/
+}
+
+//eqGraph(ComplexMk(Rat)(2,3.5))

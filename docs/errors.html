@@ -11,7 +11,7 @@
 
 <div class="content">
 
-<h1>Errors</h1>
+<h1>Bugs</h1>
 <script>
     createInput(`
     FUN(Nat, x=>times(Nat,x,plus(Nat,x,x)) )
@@ -38,8 +38,23 @@ This takes a term A and a term B and finds a function f such that f(A)=B
 <script>
 createInput(`FORALL(Type,T=>FORALL(T, x=>x)) `)
 </script>
-</br>
+<script>
+createInput(`
+FORALL(Nat, T=>FUN(T, z=>z)) `)
+</script>
+<br>
+Simplifies wrongly:
+<script>
+    createInput(`
+    FUN(Type,T=>FUN(T, w=>plus(T,w)))
+     `)
+</script>
 
+</br>
+<script>
+createInput(`FUN(Type, T=>FUN(T, U=>FUN(U,V=>FUN(V,W=>FUN(W,x=>FUN(x,y=>y))))))`)
+</script>
+<br>
 <script>
 createInput(`toCauchy(Real.Exp( Real.fromRat.def(1 )))(100)`)
 </script>

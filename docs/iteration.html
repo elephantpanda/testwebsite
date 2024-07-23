@@ -1,0 +1,38 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Sums, Products, Iteration</h1>
+We can apply functions multiple times and combine them in various ways:
+
+<br>
+Summation:
+
+<script>
+    createInput("sum(Rat, FUN(Nat, n=>Rat.fromNat(n) ),10)")
+</script>
+
+Product:
+
+<script>
+    createInput("prod(Rat, FUN(Nat, n=>Rat.fromNat(n) ),10)")
+</script>
+
+Iteration \(f^4(x) = f(f(f(f(x)))) = (fofofof)(x)\):
+
+<script>
+    createInput("iter(Rat, FUN(Rat, n=>Rat.plus(n,3) ),100,5)")
+</script>
+$$\sqrt{1}$$
+</div>
+</html>

@@ -48,7 +48,7 @@ square = FUN(x=>Nat.times(x,x))
 // Fields Nat, Rational, Int, Complex, Quaternion, Octonion
 
 
-var Nat = Var(blue("ℕ"),Type); Nat.fastValue=Nat;
+var Nat = Var("ℕ",Type); Nat.fastValue=Nat; Nat.notation = blue("ℕ");
 var zero = Nat.zero = Var(0,Nat); Nat.zero.notation = SHOW_LONG_NATS?"0":0; Nat.zero.fastValue=0;
 var succ = Nat.succ = Var("S", Nat.to(Nat)) ; succ.notation = x=> ( typeof x ==='number'? 1+x : "("+red(bold("S"))+x+")"   ); succ.fastValue = x=>1+x;
 var x = Var("x", Nat)
@@ -84,8 +84,8 @@ function isNumber(x){
     return (typeof x == 'number') ||  (typeof x =='bigint');
 }
 
-var Int = Var(blue("ℤ"),Type)
-var IntMk = Int.mk= Var("Int.mk", Nat.to(Nat.to(Int))) ; Int.mk.fastValue = x=>y=>(x-y);
+var Int = Var("ℤ",Type) ; Int.notation = blue("ℤ")
+var IntMk = Int.mk= Var("ℤ.mk", Nat.to(Nat.to(Int))) ; Int.mk.fastValue = x=>y=>(x-y);
 IntMk.notation = x=>y=>{
     if( isNumber(x) && isNumber( y)) return (BigInt(x)-BigInt(y))
     else if(x==0 && y==0) return "0"
@@ -102,33 +102,33 @@ Int.minusOne = IntMk(0,1)
 
 
 
-var Complex = Var(blue("ℂ"),Type.to(Type)) //--struct
+var Complex = Var("ℂ",Type.to(Type)); //--struct
 Complex.notation = type=>blue("ℂ")+"["+type+"]"; Complex.fastValue = Complex;// x=>"C["+x+"]";
-var ComplexMk = Complex.mk = Var("Complex.mk", new ForAll( new C(cal("F"),Type) , F=>F.to( F.to(Complex(F)))))
+var ComplexMk = Complex.mk = Var("ℂ.mk", new ForAll( new C(cal("F"),Type) , F=>F.to( F.to(Complex(F)))))
 ComplexMk.notation = type=>x=>y=> "("+x+" + " + y + (bold("i"))+")"//   + subscript(type)
 Complex.mk.fastValue = t=>x=>y=>[x,y]
 //Do I have to define it as Complex(Cos()+iSin())??
 // or   (f=>Complex(Real)( Re(f) , Im(f)  )(  n=> Complex(Rational)(n) )
 
 
-var Quaternion = Var(blue("ℍ"),Type.to(Type)) //--struct //H[Nat]
+var Quaternion = Var("ℍ",Type.to(Type)) //--struct //H[Nat]
 Quaternion.notation = type=>blue("ℍ")+"["+type+"]"
 
-var QuaternionMk = Quaternion.mk = Var("Quaternion.mk", new ForAll( new C(cal("F"),Type) , F=> (F.to(F.to(F.to(F.to( Quaternion(F)   )))))))
+var QuaternionMk = Quaternion.mk = Var("ℍ.mk", new ForAll( new C(cal("F"),Type) , F=> (F.to(F.to(F.to(F.to( Quaternion(F)   )))))))
 QuaternionMk.notation = type=>re=>i=>j=>k=>"("+re+"+"+i+bold("I")+"+"+j+bold("J")+"+"+k+bold("K")+")"+subscript(type)
 Quaternion.mk.fastValue = t=>x=>y=>z=>w=>[x,y,z,w];
 
-var Octonion = Var(blue("𝕆"),Type.to(Type)) //--struct
+var Octonion = Var("𝕆",Type.to(Type)) //--struct
 Octonion.notation = type=>blue("𝕆")+"["+type+"]"
-var OctonionMk = Var("Octonion.mk", new ForAll( new C(cal("F"),Type) , F=>F.to(F.to(F.to(F.to(F.to(F.to(F.to(F.to( Octonion(F)  ))))))))))
+var OctonionMk = Var("𝕆.mk", new ForAll( new C(cal("F"),Type) , F=>F.to(F.to(F.to(F.to(F.to(F.to(F.to(F.to( Octonion(F)  ))))))))))
 OctonionMk.notation = type=>re=>e1=>e2=>e3=>e4=>e5=>e6=>e7=>"("+re+"+"+e1+QE(1)+"+"+e2+QE(2)+"+"+e3+QE(3)+"+"+e4+QE(4)+"+"+e5+QE(5)+"+"+e6+QE(6)+"+"+e7+QE(7)+")"
 
 
 // --------------------RATIONAL----------------------------
 
 
-var Rat = Rational = Var(blue("ℚ"),Type) ;Rat.fastValue="Q";
-var RatMk =Rat.mk = RationalMk = Var("/", Int.to(Int.to(Rational)))  ; Rat.mk.fastValue = x=>y=>Number(x)/Number(y);
+var Rat = Rational = Var("ℚ",Type) ;Rat.fastValue="Q"; Rat.notation = blue("ℚ")
+var RatMk =Rat.mk = RationalMk = Var("ℚ.mk", Int.to(Int.to(Rational)))  ; Rat.mk.fastValue = x=>y=>Number(x)/Number(y);
 Rat.one =  RationalMk(1,1)
 Rat.zero = RationalMk(0,1)
 
@@ -205,7 +205,7 @@ var NatToNatToProp =Nat.to(Nat.to(Prop))
 // ----------------------Field operators----------------------
 
 var plus = Var("+", FORALL(Type, F=>F.to(F.to(F)) ));  plus.notation=type=>x=>y=>"("+fill(x)+"+"/*+subscript(type)*/+""+fill(y)+")"
-var times = Var("*", FORALL(Type, F=>F.to(F.to(F)) )); times.notation=type=>x=>y=>"("+fill(x)+"×"/*+subscript(type)*/+""+fill(y)+")"
+var times = Var("×", FORALL(Type, F=>F.to(F.to(F)) )); times.notation=type=>x=>y=>"("+fill(x)+"×"/*+subscript(type)*/+""+fill(y)+")"
 var sub = Var("-", FORALL(Type,F=>F.to(F.to(F))  ));   sub.notation=type=>x=>y=>"("+fill(x)+"-"/*+subscript(type)+""*/+fill(y)+")"
 var divide = Var("/", FORALL(Type,F=>F.to(F.to(F))  ));divide.notation=type=>x=>y=>"\\frac{"+fill(x)+"}{"/*+subscript(type)*/+""+fill(y)+"}"
 
@@ -236,7 +236,7 @@ var square = FUN(Type,F=>FUN(F, x=> times(F,x,x)   ))
 var power = Var("^",FORALL(Type,F=>F.to(Nat.to(F))  )); power.notation = type=>x=>y=>"\\left("+x+"\\right)^{"+y+"}"; power.fastValue = t=>x=>y=>Math.pow(x,y);
 
 //-------------real-------------------
-var R = Real = Var(blue("ℝ"),Type); Real.fastValue=Real;//"R";
+var R = Real = Var("ℝ",Type); Real.fastValue=Real; Real.notation =blue("ℝ")  //"R";
 //Real = Cauchy series: {F[i]}
 Real.mk = Var("R.mk", Nat.to(Rational).to(Real) ) /*plus proof of convergence?*/
 Real.mk.notation = (x,y)=>{  
@@ -254,6 +254,26 @@ Real.mk.notation = (x,y)=>{
     }else
     return "\\lim \\left\\{" + x +"\\right\\}" 
 }
+
+
+//for machine learning???
+var Bool = Var("bool",Type); Bool.notation=blue("\\mathbb{B}")
+
+var Float16 = Var("f16",Type); Float16.notation=blue("\\mathbb{f16}")
+var Float32 = Var("f32",Type);Float32.notation=blue("\\mathbb{f32}")
+var Float64 = Var("f64",Type); Float64.notation=blue("\\mathbb{f64}");//Float64.mk = Var("Float64mk",Float64); Float64.mk.fastValue = ()=>
+
+var UInt8 = Var("u8",Type); UInt8.notation=blue("\\mathbb{u8}")
+var UInt16 = Var("u16",Type); UInt16.notation=blue("\\mathbb{u16}")
+var UInt32 = Var("u32",Type); UInt32.notation=blue("\\mathbb{u32}")
+var UInt64 = Var("u64",Type); UInt64.notation=blue("\\mathbb{u64}")
+
+var Int8= Var("i8",Type); Int8.notation=blue("\\mathbb{i8}")
+var Int16 = Var("i16",Type); Int16.notation=blue("\\mathbb{i16}")
+var Int32 = Var("i32",Type); Int32.notation=blue("\\mathbb{i32}")
+var Int64 = Var("i64",Type); Int64.notation=blue("\\mathbb{i64}")
+
+var BFloat16 = Var("bf16",Type); BFloat16.notation=blue("\\mathbb{b16}")
 
 
 
@@ -294,8 +314,8 @@ Prop.id = defineVar("Id", FUN(Prop,t=>FUN(t,x=>x)))
 //Type.id = defineVar("Id", FUN(Type,t=>FUN(t,x=>x)))
 
 
-var False = Var(red("⊥"),Prop)
-var True = Var(red("⊤"),Prop)
+var False = Var("⊥",Prop);False.notation = red("⊥")
+var True = Var("⊤",Prop);True.notation = red("⊤")
 True.proof = Var("⊤.proof",True)
 
 var lt = Var("lt", FORALL(Type, G=>G.to(G.to(Prop)) ));     lt.notation=  type=>x=>y=> (x + "<" + ""+ y) 
@@ -394,10 +414,15 @@ LNext.notation = type=>x=>(rest,y)=>{
     //var result="\\{" + x;
     var result = x+"\\}";
     //matchFunc(y, LNext,(null,null,null))
+    var i=0;
     while(y.kind=="applied" && y.first && y.first.first && y.first.first.first && y.first.first.first.symbol == LNext.symbol){
         //result+=","+y.first.second.toString();
         result = y.first.second.toString()+"," + result;
         y=y.second
+        i++;
+        if(i>20) {
+            return "\\{..."+result;          
+        }
     }
      if(y.kind=="applied" && y.first.symbol==LEnd.symbol) return "\\{"+result;// return result+ "\\}"
    // return result + y.toString() +"\\}"
@@ -432,7 +457,7 @@ var sum=new Var("sum", FORALL(Type, T=>Nat.to(T).to(Nat.to(T))) ) //sum(F, a) = 
 sum.notation = type=>(F,y)=>n=>{
     if(y && y.kind=="fun"){
         var vari=new C(getNewVariName(),y.vari.type)
-        return "\\sum\\limits_{"+vari+"=0}^{"+n+"} \\left\\{" + y.appliedTo(vari) +"\\right\\}" 
+        return "\\sum\\limits_{"+vari+"=0}^{"+n+"} \\left\\{" + fill(y.appliedTo(vari).toString()) +"\\right\\}" 
     }else
     return "\\sum\\limits_{0}^{"+n+"}"+F
 }
@@ -625,7 +650,7 @@ var sinSum = Var("sinSum",FORALL(R,x=>FORALL(R,y=>
 var cosSum = Var("cosSum",FORALL(R,x=>FORALL(R,y=>
     R.equals( R.cos(R.plus(x,y)), R.sub(R.times(R.cos(x),R.cos(y)), R.times(R.sin(x),R.sin(y))  )))))
 
-var toCauchy = Var(red("\\mathcal{C}"),Real.to(Nat.to(Rational)) ) //gets the cauchy series for the reals
+var toCauchy = Var("cauchy",Real.to(Nat.to(Rational)) ) //gets the cauchy series for the reals
 toCauchy.notation=  r=>n=>(red("\\mathcal{C}")+subscript(n)+""+r);
 var realSeriesProp = sorry(FORALL(Nat.to(Rational), F=> equals(Nat.to(Rational)  ,toCauchy( R.mk(F)   )   , F  )   ))
 
@@ -691,7 +716,7 @@ var integrate = FUN(Real.to(Real), F=>FUN(Real, x=>
 
 //integral 0...x
 //x=> sum( f(x*i/n) *(x/n)  ,i = 0...n ) 
-var Integral = Var(x=>"Int", Real.to(Real).to(Real.to(Real)))
+var Integral = Var("Integral", Real.to(Real).to(Real.to(Real)))
 Integral.notation = (x,y)=>z=>
     {
         if (y && y.kind=="fun"){
@@ -700,7 +725,7 @@ Integral.notation = (x,y)=>z=>
             return "\\int " + x
         }
     }
-var Deriv = Var(x=>"Deriv", R2R.to(R2R))
+var Deriv = Var("Deriv", R2R.to(R2R))
 Deriv.notation = (x,y)=>z=>
     {
 
@@ -716,7 +741,7 @@ Deriv.notation = (x,y)=>z=>
         }
     }
 
-var DerivT = Var(x=>"Deriv",FORALL(Type, T=>Real.to(T).to(Real.to(T))))
+var DerivT = Var("DerivT",FORALL(Type, T=>Real.to(T).to(Real.to(T))))
 DerivT.notation = t=>(x,y)=>z=>
 {
     if (y && y.kind=="fun"){
@@ -819,6 +844,9 @@ Vector.start.fastValue = T=>[];
 Vector.mk.fastValue = T=>n=>x=>rest => rest.concat(x);
 
 var Projective = Var("Proj",Type.to(Nat.to(Type))); Projective.notation = t=>n=> t +blue("\\mathbb{P}")+"^{"+n+"}";
+
+
+var Iso = Var("Iso", Type.to(Type.to(Prop))); Iso.notation = a=>b=>a+"\\cong "+b;
 
 var Euc = FUN(Nat,dim=>Vector(Real)(dim) )
 //var Euc=dim=>Vector(Real)(dim)
@@ -923,6 +951,11 @@ var Laplacian = FUN(Nat, dim=> sum(FF(dim).to(FF(dim)) ,FUN(Nat, i=>
   )  , dim   ) ) ) )
   LaplacianT.notation = t=>dim=>"\\nabla^2"
 
+  //GradT ( F_n(x_3) )
+//var GradT = Var("Grad" , FORALL(Type, T=>FORALL(Nat, dim=>   (Euc(dim).to(T) ).to( Vector( Euc(dim).to(T)    )(dim)   )     )));
+var GradT = Var("Grad" , FORALL(Type, T=>FORALL(Nat, dim=>   (Euc(dim).to(T) ).to( Euc(dim).to( Vector(T   )(dim)   )     ))));
+GradT.notation = t=>dim=>"\\nabla";
+
 //Laplacian = FUN(Nat, dim=>  PDeriv(dim,Zmod.fromNat(dim,2))  )  //gives typeof=object!
 //FF=dim=>Euc(dim).to(R) //<---probably a bad idea!
 //var Grad-->E^n
@@ -1006,8 +1039,8 @@ factorial.fastValue = n=>{
 
 //----------------------------COMPLEX RULES-----------------------
 
-var realPart = Var(red("Re"), FORALL(Type,F=>Complex(F).to(F))); realPart.notation = type=>x=>red("Re")/*+subscript(type)*/+""+x+""
-var imPart = Var(red("Im"), FORALL(Type,F=>Complex(F).to(F))); imPart.notation = type=>x=>red("Im")/*+subscript(type)*/+""+x+""
+var realPart = Var("Re", FORALL(Type,F=>Complex(F).to(F))); realPart.notation = type=>x=>red("Re")/*+subscript(type)*/+""+x+""
+var imPart = Var("Im", FORALL(Type,F=>Complex(F).to(F))); imPart.notation = type=>x=>red("Im")/*+subscript(type)*/+""+x+""
 var mod = Var("modC", FORALL(Type,F=>Complex(F).to(F))); mod.notation = type=>x=>"|"+x+"|";
 var norm = Var("normC", FORALL(Type,F=>Complex(F).to(F))); mod.notation = type=>x=>"|"+x+"|^2";
 
@@ -1023,10 +1056,10 @@ var normCProof =  new Var("modCProof",FORALL(Type, F=>FORALL(Complex(F), z=>equa
 function REALPART(F,x){ return realPart(F,x)}
 function IMPART(F,x){ return imPart(F,x)}
 
-var Eisen= Var(blue("Q(ω)"),Type.to(Type))
+var Eisen= Var("F(ω)",Type.to(Type)) 
 //Eisen.notation = x=>blue(bold("Q")+"(ω^3=1)")+"["+x+"]"
 Eisen.notation = x=>x+"(ω)/\\langle ω^3=1\\rangle"
-Eisen.mk = Var("Eisen", FORALL(Type, F=>F.to(F.to(Eisen(F)))))
+Eisen.mk = Var("F(ω).mk", FORALL(Type, F=>F.to(F.to(Eisen(F)))))
 Eisen.mk.notation = type=>x=>y=>"("+x+"+"+y+bold("ω")+")"
 Eisen.zero = Eisen.mk(Int,0,0)
 Eisen.omega = Eisen.mk(Int,0,1)
@@ -1125,12 +1158,14 @@ var distribRM = new Var("distribR",FORALL(Type,F=>FORALL(F,x=>FORALL(F,y=>FORALL
 //---
 
 //topology
-var Space = new Var("Space",Type)
-var sphere=new Var("sphere",Nat.to(Space)); sphere.notation = n=>blue("\\mathbb{S}")+"_{"+n+"}"
+//var Space = new Var("Space",Type)
+var Space=Type;
+var sphere=new Var("sphere",Nat.to(Space)); sphere.notation = n=>blue("\\mathbb{S}")+"^{"+n+"}"
 var ball = new Var("ball",Nat.to(Space)); ball.notation = n=>blue("\\mathbb{B}")+"_{"+n+"}"
 var boundary = new Var("boundary", Space.to(Space)); boundary.notation = "\\partial"
 
-var boundProp = new Var("boundProp", FORALL(Nat, n=>equals(Space, boundary(ball(succ(n))), sphere(n)   )  ))
+var boundProp = new Var("boundProp", FORALL(Nat, n=>Type1.equals(Space, boundary(ball(succ(n))), sphere(n)   )  ))
+
 
 
 
@@ -1415,13 +1450,15 @@ Type.prod = Var("prodType",Type.to(Type.to(Type))); Type.prod.notation  = x=>y=>
 //(pairs) (What is pair of propositions called?)
 Prop.pair= Var("propPair", FORALL(Prop,A=>FORALL(Prop,B=>A.to(B.to(Prop.and(A,B)))))); Prop.pair.notation = a=>b=>x=>y=> "("+x+","+y+")"
 Type.pair = Var("prodMk", FORALL(Type,A=>FORALL(Type,B=>A.to(B.to(Type.prod(A,B)))))); Type.pair.notation = a=>b=>x=>y=> "("+x+","+y+")"//+subscript(a+"×"+b)
-Type.first  =Var("first",   FORALL(Type,A=>FORALL(Type,B=>Type.prod(A)(B).to(A))));      Type.first.notation = a=>b=>x=>"{"+x+"}"+subscript("L")
-Type.second =Var("second",  FORALL(Type,A=>FORALL(Type,B=>Type.prod(A)(B).to(B)) ));     Type.second.notation = a=>b=>x=>"{"+x+"}"+subscript("R")
+Type.First  =Var("first",   FORALL(Type,A=>FORALL(Type,B=>Type.prod(A)(B).to(A))));      Type.First.notation = a=>b=>x=>"{"+x+"}"+subscript("L")
+Type.Second =Var("second",  FORALL(Type,A=>FORALL(Type,B=>Type.prod(A)(B).to(B)) ));     Type.Second.notation = a=>b=>x=>"{"+x+"}"+subscript("R")
 
 //----------------------Complex functions-----------------
 //var C=Complex
 //Real.Sin
 var CR=Complex(Real);CR.notation = blue("\\mathbb{C}");
+var HR=Quaternion(Real);HR.notation = blue("\\mathbb{H}");
+var OR=Octonion(Real);OR.notation = blue("\\mathbb{O}");
 //defineVar(blue("\\mathbb{C}"),Complex(Real));
 CR.mk = Complex.mk(Real)
 
@@ -1649,6 +1686,7 @@ var println=Var("println",mystring.to(instruct)); println.fastValue = s=>{ print
 var LieGroup = Var("LieGroup",Type) //Type2?
 var SU = Var("SU",Nat.to(Type))
 var Orthog = Var("Orthog",Nat.to(Type));Orthog.notation="O";
+var SO = Var("SO",Nat.to(Type));
 var Sp = Var("Sp",Nat.to(Type))
 var E8 = Var("E_8",Type)
 var E7 = Var("E_7",Type)
@@ -1742,3 +1780,5 @@ var Me = Var("m_e",Real);  Me.fastValue = 0.51099895069*MeV
 var Mmu = Var("m_\\mu",Real);  Mmu.fastValue = 105.6583755*MeV
 var Mtau = Var("m_\\tau",Real); Mtau.fastValue = 1776.9*MeV
 var FineStructure = Var("\\alpha",Real); FineStructure.fastValue = 1/137.035999177;
+
+

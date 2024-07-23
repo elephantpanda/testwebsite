@@ -14,6 +14,7 @@
 
 <div class="content">
 <h1>Topology</h1>
+There are various ways to build a topological space: As a subset of some bigger space; as the union of other spaces (glueing together boundaries); as the product of lower dimensinoal spaces; as the quotient of two spaces. We then want to determine when different constructions are essentially the same (i.e. can be smoothly transformed into each other).
 
 <h2>Spheres</h2>
 The 3-spheres can be defined as the set of points in \(\mathbb{R}^3 \) subject to a restriction.
@@ -25,6 +26,8 @@ circle.mk = Var("S_2.mk", FORALL(Real, x=> FORALL(Real,y=> Real.equals( Real.plu
 circle.mk(Real.fromRat(3/5),Real.fromRat(4/5))
     `)
 </script>
+In other words the definition is a set of real numbers, together with the proof that these numbers satisify the equation of a sphere.<br>
+The 1-sphere (circle) can also be defined by \( S_1 = \{x,y \in \mathbb{R}| x + 1 \sim  y \} \) or, equivalently, \(S_1 = \mathbb{R}/\mathbb{Z} \)
 
 <h2>Subsets</h2>
 We can use the conditional construct to form subsets:

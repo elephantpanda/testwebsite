@@ -11,22 +11,29 @@
 
 
 <div class="content">
-<h1>Schrodinger Wave Equation</h1>
-<h2>The wave equation</h2>
+<h1>Navier Stokes</h1>
+<h2>Navier Strokes Equation</h2>
 
 We define the wave function is a complex valued function. It is paramaterised by a time variable and some particle data such as the coordinates of a particle, or several particles.
 
 <script>
     createInput(
-`psi = Var("\\psi", R.to(Vec(R,3).to(CR)));
+`mu = Var("\\mu",Zmod(3));
+density = Var("\\rho",Vec(R,3).to(R));
+pressure = Var("p", R.to(Vec(R,3).to(R)));
+u = Var("u", R.to(Vec(R,3).to(Vec(R,3)))); u.notation = t=>"u_{"+t+"}"
 t = Var("t",R);
 x = Var("x",Vec(R,3));
-psi(t)(x);
-psix = FUN(R,u=>psi(u)(x));
-DerivT(CR)(psix)(t);
-LaplacianT(CR)(3).apply(psi(t))(x);
-equals(CR, times(CR, CR.mk(0,1), DerivT(CR)(psix)(t)) ,  LaplacianT(CR)(3).apply(psi(t))(x))
-
+u(t)(x);
+ux = FUN(R,w=>u(w)(x));
+DerivT(Vec(R,3))(ux)(t);
+u(t);
+LaplacianT(Vec(R,3))(3).apply(u(t))(x);
+//equals(CR, times(CR, CR.mk(0,1), DerivT(CR)(psix)(t)) ,  LaplacianT(CR)(3).apply(psi(t))(x))
+PDeriv(Vec(R,3))(3)(mu)(u(t));
+GradT(Vec(R,3))(3)(u(t))(x);
+GradT(R)(3)(pressure(t))(x);
+Div(3).apply(density)
 `.replaceAll("\\","\\\\"))
 </script>
 

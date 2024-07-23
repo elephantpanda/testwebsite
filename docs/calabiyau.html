@@ -12,6 +12,8 @@
 
 <div class="content">
 <h1>Calabi Yau Manifold</h1>
+A Calabi Yau Manifold is a Complex surface on which we can assign a Ricci-flat (Kahler) metric. This has been shown to be equivalent to it having \(SU(n)\) holonomy (this describes the way arrows are transformed when moved in a loop). All smooth algebraic varieties in \( \mathbb{CP}^n\) are Kahler manifolds.
+
 <h2>Compact dimensions</h2>
 
 We shall give some examples of Calabi Yau manifolds. One of the the most symmetrical is:
@@ -30,6 +32,8 @@ A member of this type therefore includes a member of \( \mathbb{CP}^4 \) togethe
     <img src="images/CalabiYau5.jpg"/>
 </center>
  
+
+
 <h2>Projective Space</h2>
 A projective space over field \(F\) is defined by:
 
@@ -37,14 +41,32 @@ $$ F\mathbb{P}^{n} \cong  F^{n+1}\backslash \{0\} / \{ \forall_{\alpha\in F}(x_1
 
 
 Some isomorphisms are:<br>
-$$\mathbb{RP}^1 \cong \mathbb{S}^1$$
-\(\mathbb{RP}^2 \) is a surface which can be embedded in 4 dimensions.
-$$\mathbb{RP}^3 \cong SO(4)$$
-$$\mathbb{CP}^1 \cong \mathbb{S}^2$$
-$$\mathbb{HP}^1 \cong \mathbb{S}^4$$
-$$\mathbb{OP}^1 \cong \mathbb{S}^8$$
+
+
+<script>
+    createInput(
+`Iso(Projective(R,1),sphere(1));
+Iso(Projective(R,3),SO(4));
+Iso(Projective(CR,1),sphere(2));
+Iso(Projective(HR,1),sphere(4));
+Iso(Projective(OR,1),sphere(8))
+`)
+</script>
+Also:
 $$\mathbb{ZP}^1\backslash\{(1,0)\} \cong \mathbb{QP}^1\backslash\{(1,0)\} \cong \mathbb{Q}$$
 
+<h2>Homeomorphism</h2>
+The definition of homeomorphism could be something like:
+
+$$A\cong B \rightarrow \exists_{\phi:A\rightarrow B, \psi:B\rightarrow A} (\forall_{y:B}\exists_{x:A}\phi(x)=y \wedge \psi(\phi(x))=x ) \wedge (\forall_{y:A}\exists_{x:B}\psi(x)=y \wedge \phi(\psi(x))=x )  $$ 
+
+With additional conditions that \(\psi\) and \(\phi\) be continuous.<br>
+
+For example for the circle we might have \( \phi(x,y) = atan2(y,x) , \psi(\theta)= (\cos(\theta),\sin(\theta))  \)
+
+
+<h2>Physics</h2>
+There are many Calabi-Yau manifolds that are compatible with string theory. So if the theory is to be more predictive another selection criteria is needed. Perhaps a criteria is to find one which produces a de-Sitter rather than an anti-de-Sitter space.
 
 $$\sqrt{1}$$
 </div>
