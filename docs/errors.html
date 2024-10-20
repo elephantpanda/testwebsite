@@ -11,7 +11,10 @@
 
 <div class="content">
 
-<h1>Bugs</h1>
+<h1>Bugs and Tests</h1>
+Possible bugs: It is not clear what the type should be of a FORALL. It is set so that it is either Type or Prop depending on what it contains.
+
+
 <script>
     createInput(`
     FUN(Nat, x=>times(Nat,x,plus(Nat,x,x)) )
@@ -27,13 +30,20 @@ iter(Nat, FUN(Nat,x=>times(Nat,x,2)),0,3)
 <script>createInput(`
     plus(Real,E,E)
     `)</script>
-<h1>ETests</h1>
+<h1>Tests</h1>
 This takes a term A and a term B and finds a function f such that f(A)=B
 <br>
 <br>Example:<br>
 <script>createInput(`complexMul(Nat)
 `)</script>
 
+<br>
+<script>
+    createInput(`double = FORALL(Type, T=>FORALL(T, x=>plus(T,x,x)  )  ) `)
+</script>
+<script>
+    createInput(`double = FORALL(Type, T=>FUN(T, x=>plus(T,x,x)  )  ) `)
+</script>
 <br>
 <script>
 createInput(`FORALL(Type,T=>FORALL(T, x=>x)) `)
@@ -43,7 +53,7 @@ createInput(`
 FORALL(Nat, T=>FUN(T, z=>z)) `)
 </script>
 <br>
-Simplifies wrongly:
+<h3>Simplifies wrongly:</h3>
 <script>
     createInput(`
     FUN(Type,T=>FUN(T, w=>plus(T,w)))
@@ -73,9 +83,13 @@ Float value not working:
 <script>
     createInput(`toCauchy(Pi.def)(10)`)
 </script>
-
+<h2>Broken</h2>
+This breaks when you click SIMP. This stems from the times(x,x) line which breaks when it has two x's.
 <script>
-    createInput( `toCauchy(deriv(FUN(Real, x=>Real.times(x,x)))(Real.fromRat.def(3)))(100)`)
+    createInput( `ff=FUN(R,x=>R.plus(x,x));
+g = FUN(R2R,f=>FUN(R,z=>R.plus(2,f(z))));
+g(ff)(z)
+    `)
 </script>
 
 TOPOLOGY DEFINE RATIONAL POINTS ON CIRCLE:

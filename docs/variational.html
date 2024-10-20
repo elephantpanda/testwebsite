@@ -16,11 +16,15 @@
 The Euler-Lagrange equations work Lagrangians of the form:
 
 <script>
-    createInput("times(R2R.to(R2R),Compose(R2R,Deriv,Deriv),Deriv)")
+    createInput(`phi=Var("\\\\phi",R2R);
+DFunc(times(R2R.to(R2R),Compose(R2R,Deriv,Deriv),Deriv))(phi)`)
 </script>
 
-Let delta = delta/delta phi(x) int L(phi, phi', phi'', ...)dx<br> 
-The formula is delta int f(Id, D, DoD, DoDoD,...) = f[0] - D o f[1] + D o D o f[2] - ....
+<h2>Are there axioms like the product rule?</h2>
+Investigating if there are axioms similar to the product rule for the functional derivative \( \frac{\delta}{\delta f(x)} \)
+<br>
+Let \( Delta[L](x) = \frac{\delta}{\delta \phi(x)} \int L(\phi, \phi', \phi'', ...)dx \)<br> 
+The formula is \( Delta[ \int f(Id, D, DoD, DoDoD,...)] = f^{[0]} - D o f^{[1]} + D o D o f^{[2]} - .... \)
 <br>
 Is there an iterative formula?
 <br>

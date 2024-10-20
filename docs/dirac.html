@@ -26,7 +26,12 @@ psi = Var("\\psi", Vec(CScalar,4));
 x = Var("x",Vec(R,4));
 Psi = Vector.get( CScalar, 4 , psi);
 m = Var("m",CScalar);
-plus(CScalar, PDeriv(CR,4)(mu)(Psi(alpha)), times(CScalar, m, Psi(alpha)))(x)
+gamma = Var("\\gamma", Vec(psi.type.to(psi.type),4));
+plus(CScalar, PDeriv(CR,4)(mu)(Psi(alpha)), times(CScalar, m, Psi(alpha)))(x);
+
+Q=Vector.get(CScalar,4,Vector.get(psi.type.to(psi.type) , 4, gamma)(mu)(psi))(alpha);
+
+plus(CScalar, PDeriv(CR,4)(nu)( Q), times(CScalar, m, Psi(alpha)))(x);
 `.replaceAll("\\","\\\\"))
 </script>
 

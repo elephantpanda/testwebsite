@@ -21,10 +21,14 @@ We shall give some examples of Calabi Yau manifolds. One of the the most symmetr
 $$ \{(v,w,x,y,z)\in \mathbb{CP}^4 | v^5+w^5+w^5+x^5+y^5+z^5 = 0  \}$$
 
 (This is equivlanet to the surface )
-
+<br>
+Mistake here as indices for CP4 are 0..4 
 <script>
     createInput(
-`conditional(Projective(Real,4))(FUN(Projective(Real,4),x=>True))
+`conditional(Proj(CR,4))(FUN(Proj(CR,4),x=>equals(CR,
+   sum(CR, FUN(Nat, n=>power(CR,Proj.get(CR,4,x,Zmod.fromNat(4,n)),5)) ,4)
+,0)))
+
 `.replaceAll("\\","\\\\"))
 </script>
 A member of this type therefore includes a member of \( \mathbb{CP}^4 \) together with a proof that it satisfies the equation.
@@ -38,18 +42,18 @@ A member of this type therefore includes a member of \( \mathbb{CP}^4 \) togethe
 A projective space over field \(F\) is defined by:
 
 $$ F\mathbb{P}^{n} \cong  F^{n+1}\backslash \{0\} / \{ \forall_{\alpha\in F}(x_1,..x_{n+1}) \sim  (\alpha y_1,..,\alpha y_{n+1})   \}  $$ 
-
-
-Some isomorphisms are:<br>
+<br>(Not sure how to do equivalence relations yet)<br>
+<h2>Isomorphisms</h2>
+Some isomorphisms between different types (topological spaces) are:<br>
 
 
 <script>
     createInput(
-`Iso(Projective(R,1),sphere(1));
-Iso(Projective(R,3),SO(4));
-Iso(Projective(CR,1),sphere(2));
-Iso(Projective(HR,1),sphere(4));
-Iso(Projective(OR,1),sphere(8))
+`Iso(Proj(R,1),sphere(1));
+Iso(Proj(R,3),SO(4));
+Iso(Proj(CR,1),sphere(2));
+Iso(Proj(HR,1),sphere(4));
+Iso(Proj(OR,1),sphere(8))
 `)
 </script>
 Also:

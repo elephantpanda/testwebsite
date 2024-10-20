@@ -1,0 +1,48 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Prime numbers</h1>
+A prime is a natural number which has two factors bigger than one. To specify a variable which is of prime type we could write:
+
+
+<script>
+    createInput(`Var("p",Prime.def)`)
+</script>
+
+We can expand the definition for isPrime to see that it is a propositional function which is a definition for prime numbers:
+<script>
+    createInput("isPrime.def")
+</script>
+
+We can evaulate them using the fast evaluator
+
+<script>
+    createInput("isPrime(7)")
+</script>
+
+Another example
+
+<script>
+    createInput("isPrime(12)")
+</script>
+
+So we can define a prime type as follows:
+
+<script>
+    createInput("isPrime(12)")
+</script>
+
+
+</div>
+</html>

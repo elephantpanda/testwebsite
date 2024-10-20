@@ -2,7 +2,7 @@ var USE_MATHJAX=true
 var DARK_MODE=true
 var USE_FASTNAT=true 
 var DEBUG_MODE=true
-var SHOW_LONG_NATS=!true
+var SHOW_LONG_NATS=true
 //Not working:: R.times(R.plus(3,7),R.plus(4,5))
 //Type theory rules
 // x:A, f:A->B              f (x) : B
@@ -24,11 +24,13 @@ function createInput(text ,element){
     var rows = text.split("\n").length
     var s=
     `<textarea rows=${rows} id=example${inputID} class="input" spellcheck="false">${text}</textarea>
-    <button onclick="go(${inputID},true)">Eval</button>
-    <button onclick="fullsimplify('output${inputID}')">SIMP</button>
-    <button onclick="simplify('output${inputID}')">SIMP ONCE</button>
-    <button onclick="tofloat('output${inputID}')">TO FLOAT</button>
-    <button onclick="showEqGraph('output${inputID}')">EQ GRAPH</button>
+    <button onclick="go(${inputID},true)">PRINT</button>
+    <button onclick="fullsimplify(${inputID})">SIMP</button>
+    <button onclick="simplify(${inputID})">SIMP ONCE</button>
+    <button onclick="tofloat(${inputID})">FLOAT</button>
+    <button onclick="showEqGraph(${inputID})">EQ GRAPH</button>
+    <button onclick="doDefEval(${inputID})">DEFEVAL</button>
+    <button onclick="doExpandNats(${inputID})">EXPAND NATS</button>
     <div id="output${inputID}" class="outputbox"></div>
     `
     if(element) element.innerHTML+=s;
@@ -70,7 +72,9 @@ function subscript(s){
 }
 
 var output=document.getElementById("output")
-var result=null
+var result=null;
+var results=[0];
+var currentCell=0;
 
 function fill(f){
     while(typeof f=='function'){
@@ -106,6 +110,7 @@ function go(ID,clear){
     lines = text.split(";")
     for(var i=0;i<lines.length;i++){
         text=lines[i];
+        var lastresult=result;
 
         if(DEBUG_MODE)  result = eval(text)
         else{
@@ -119,20 +124,19 @@ function go(ID,clear){
             }       
         }
 
+        result = evalObject(result)
         if(result!=null){
-            if(typeof result==='number') {
-                result = guessNumberType(result)   
-            }
-            if(result instanceof Array){    
-                result = toList(result)
-            }
             var type=result.type
             if(type==undefined)
                 print(normal(result.toString()))
-            else
+            else{
                 print(fill(result.toString()) + " : " +fill(result.type.toString()))
-        }
+            }
+        }else result=lastresult;
+        
     }
+
+    results[ID] = result;
 
     if(window.MathJax!=undefined)
     MathJax.typesetPromise([output]).then(() => {
@@ -141,6 +145,26 @@ function go(ID,clear){
 
     //MathJax.typeset()
 }
+
+function evalObject(result){
+    if(result!=null){
+        if(typeof result==='number') {
+            result = guessNumberType(result)   
+        }
+        if(typeof result==='boolean'){
+            result = result?True:False;
+        }
+        if(typeof result==='string') {
+            result = NewStringObj(result)  
+        }
+        if(result instanceof Array){    
+            result = toList(result)
+        }
+    }
+    return result
+}
+
+
 function guessNumberType(result){
     if(result!=Math.floor(result)) return toRat(result)
     else if(result<0 ) return toInt(result ) 
@@ -150,6 +174,9 @@ function toList(list ,type=null){
     if(type==null){
         var L0=list[0];
         if(typeof L0 =='number') L0 = guessNumberType(L0)  
+        if(typeof L0 =='string') L0 = NewStringObj(L0) 
+        if(typeof L0 =='boolean') L0 = L0?True:False;
+        if(L0 instanceof Array) L0 = toList(L0)
         type=L0.type
     }
     var L=LEnd(type)
@@ -192,20 +219,26 @@ function ToggleMathjax(){
     if(USE_MATHJAX) MathJax.typset()
 }
 
-function tofloat(outputName){  
+function tofloat(inputID){  
+    var outputName=`output${inputID}`
     output=document.getElementById(outputName)
-    result = result.float()
+    result = results[inputID].float()
     output.innerHTML+=result
+    //results[inputID] = result //??
 }
 
-function showEqGraph(outputName){  
+function showEqGraph(inputID){  
+    currentID=inputID
+    var outputName=`output${inputID}`
     output=document.getElementById(outputName)
-    eqGraph(result)
+    eqGraph(results[inputID])
 }
 
-function simplify(outputName){  
+function simplify(inputID){  
+    var outputName = `output${inputID}`
     output=document.getElementById(outputName)
-    result = SIMP(result)
+    result = SIMP(results[inputID])
+    results[inputID]=result;
     print(fill(result.toString()) + " : " +result.type)
     MathJax.typeset()
 }
@@ -214,9 +247,29 @@ function jax(x){
     else return x
 }
 
-function fullsimplify(outputName){  
+function fullsimplify(inputID){  
+    var outputName = `output${inputID}`
     output=document.getElementById(outputName)
-    result = SIMP(result,M=1,fullsimp=true)
+    result = SIMP(results[inputID],M=1,fullsimp=true)
+    results[inputID]=result;
+    print(fill(result.toString())+" : " +result.type)
+    MathJax.typeset()
+}
+
+function doDefEval(inputID){
+    var outputName = `output${inputID}`
+    output=document.getElementById(outputName)
+    result = DEFEVAL(results[inputID])
+    results[inputID]=result
+    print(fill(result.toString())+" : " +result.type)
+    MathJax.typeset()
+}
+
+function doExpandNats(inputID){
+    var outputName = `output${inputID}`
+    output=document.getElementById(outputName)
+    result = ExpandNats(results[inputID])
+    results[inputID]=result
     print(fill(result.toString())+" : " +result.type)
     MathJax.typeset()
 }
@@ -244,53 +297,59 @@ REWRITE.prototype.toString=function(){
     return "RW("+this.source+"◀"+this.lemma+"])"
 }
 
-function C(a,t){
-    const inst = function(...args){
-        return inst.apply(...args);
+class C {
+    constructor(a, t) {
+        const inst = function (...args) {
+            return inst.apply(...args)
+        }
+
+        //const instance=this
+        inst.symbol = a
+        inst.type = t
+        inst.kind = "atom"
+        inst.postfix = false
+        inst.bold = false
+        inst.notation = a
+
+        Object.setPrototypeOf(inst, C.prototype)
+
+        return inst
     }
-        
-    //const instance=this
-    inst.symbol = a
-    inst.type = t
-    inst.kind = "atom"
-    inst.postfix=false
-    inst.bold=false
-    inst.notation=a
-
-    Object.setPrototypeOf(inst, C.prototype)
-
-    return inst
-}
-
-C.prototype.apply=function(...args){
-    var N=this
-    for(var i=0;i<args.length;i++){
-        N = APPLY(N,args[i])
-        //N = apply(N,args[args.length-1 -i])
+    apply(...args) {
+        var N = this
+        for (var i = 0; i < args.length; i++) {
+            N = APPLY(N, args[i])
+            //N = apply(N,args[args.length-1 -i])
+        }
+        return N
     }
-    return N
-}
-C.prototype.to = function(x){
-    return new F(this,x)
-}
-C.prototype.float = function(){
-    if(FastNat && this.symbol==FastNat.symbol) return Number(this.value);
-    if(this.liveVal) return this.fastValue();
-    else
-    return this.fastValue
+    to(x) {
+        return new F(this, x)
+    }
+    float() {
+        if (FastNat && this.symbol == FastNat.symbol) return Number(this.value)
+        if (this.liveVal) return this.fastValue()
+
+        else
+            return this.fastValue
+    }
+    toString() {
+        if (this.symbol == "?") {
+            if (wilds[this.value]) return wilds[this.value].toString()
+        }
+        if (this.notation != null) return this.notation
+        if (this.bold) return red(bold(this.symbol))
+        return this.symbol
+    }
+    by(f) {
+        return f(this)
+    }
+    inputForm(){
+        return this.symbol
+    }
 }
 
-C.prototype.toString = function(){    
-    if(this.symbol=="?"){
-        if(wilds[this.value]) return wilds[this.value].toString()
-    }
-    if(this.notation!=null)return this.notation
-    if(this.bold) return red(bold(this.symbol)); 
-    return this.symbol
- }
- C.prototype.by = function(f){
-    return f(this);
- }
+
 
 function Var(x,y, def=false){
     if(!y){
@@ -309,6 +368,8 @@ function Var(x,y, def=false){
     }
     return result
 }
+
+var AXIOM=Var
 
 function NewType(x){
     return Var(x,Type)
@@ -330,8 +391,11 @@ function defineVar(name, def, notation){
             a.proof = Var(name+".proof",def.type.type.equals(def.type, a , def) ,true)
         }
     }
+    a.fastValue = a.def.float() //<-- default(?)
     return a
 }
+var ALIAS=defineVar
+
 function defineFun1(name, def, notation){  //NOT COMPLETE
     var a = Var(name, def.type)
     a.notation = notation
@@ -439,7 +503,7 @@ class Applied {
             return null
         }
         //console.log(this.kind+","+this.second.kind+" "+this.second.symbol+" ("+secondValue+")")
-        return firstValue(secondValue)
+        return firstValue(secondValue,this.second) //second argument useful for setting values, for example
     }
     fastValue() {
         console.log("HELLO")
@@ -461,6 +525,9 @@ class Applied {
                 return "(" + firstString + ")(" + fill(secondString) + ")"
             //return firstString+ (this.second.kind=="applied"?"("+ secondString+")" :" "+ secondString  )
         }
+    }
+    inputForm(){
+        return this.first.inputForm() + "(" + this.second.inputForm() + ")"
     }
 }
 
@@ -530,6 +597,9 @@ class F {
     to(x) {
         return new F(this, x)
     }
+    inputForm(){
+        return this.first.inputForm()+".to("+this.second.inputForm()+")"
+    }
 }
 function Fbracket(x){
     if(x.kind=="imply") return "("+x+")"
@@ -547,6 +617,8 @@ class ForAll {
         this.symbol = "∀"
         this.color="orange"
         this.type = this.second ? this.second.type : null //inherits type?//f(x).type
+        if(this.type && this.type.symbol!=Type.symbol && this.type.symbol!=Prop.symbol) this.type = this.second.type.type; //hackish
+        
         //console.log("ForAll Const" + this.first)
     }
     to(x) {
@@ -565,8 +637,13 @@ class ForAll {
         var second = this.appliedTo(tempVari) //this.func(tempVari)
 
         //return "\\bigwedge\\limits_{"+this.vari+":"+ this.first+"}"+fill(this.second.toString());
-        if (USE_MATHJAX) return "\\bigwedge\\limits_{" + tempVari + "\\in " + this.first + "}" + fill(second.toString())
+        if (USE_MATHJAX) return "\\bigwedge\\limits_{" + tempVari + "\\in " + this.first + "}" + fill(second.toString());
         return red(bold("∀")) + "(" + tempVari + ":" + this.first + ")," + fill(second.toString())
+    }
+    inputForm(){
+        var tempVari = new C(getNewVariName(), this.first)
+        var second = this.appliedTo(tempVari) 
+        return "FORALL("+this.type.inputForm()+","+tempVari.inputForm()+"=>"+second.inputForm()+")"
     }
 }
 
@@ -672,6 +749,11 @@ class Fun {
             return result;
         }
     }
+    inputForm(){
+        var tempVari = new C(getNewVariName(), this.first)        
+        var newsecond = REPLACE(this.second, this.vari, tempVari)
+        return "FUN("+this.first.inputForm()+","+tempVari.inputForm()+"=>"+newsecond.inputForm()+")"
+    }
 }
 
 
@@ -738,6 +820,7 @@ function tryToConvertNumber(A,b){ //convert javascript-numerical b to type A
     return b
 }
 
+
 function APPLY(a,b){  /// a(b)// where a:A->B or a:Forall(x:A=>B(x))
     //print(a.type.first+"=?="+b.type+"  "+a.kind)
     
@@ -783,28 +866,34 @@ function APPLY(a,b){  /// a(b)// where a:A->B or a:Forall(x:A=>B(x))
         b=tryToConvertNumber(expectedType,b) 
         expectedType=b.type
     }
+    if(typeof b=='boolean'){
+        b = b?True:False;
+        expectedType = Prop;
+    }
+    if(typeof b ==='string'){
+        b = NewStringObj(b)
+        expectedType = mystring
+    }
     if(b instanceof BigInt){
-        var result = new Var(FastNat.symbol,Nat)
+        var result = NewFastNat(b)
         result.notation = "["+b+"]"+subscript("ℕ")
-        result.value = b
         b=result
     }
 
     //fast check first?
     if ( !equiv(expectedType,b.type)){
-    //if(expectedType.toString()!=b.type.toString()){
-    //if(a.type.first != b.type) {  //   :N->M
-        //SHOULD CHECK DEFINITIONAL EQUALITY!//
-
-        if(! defEqual( expectedType,b.type) ){
-
-        var warning=red(normal("⚠"))+fill(a.toString())+red(normal(" expected ■ : "))+fill(expectedType.toString()) +red(normal("  Got "))+fill(b.toString()) + " : "+b.type
-        console.log(warning)
-        print(warning);
-        print(blue(normal("(Need to implement definitional equality check)")))
-        if(USE_MATHJAX) MathJax.typeset();
-        b = ErrorObject
-        //return null;
+        //if(a.type.first != b.type) {  //   :N->M
+        //checking definitional equality
+        if(! DEFEQUIV( expectedType,b.type) ){
+            var warning=red(normal("⚠"))+fill(a.toString())+red(normal(" expected ■ : "))+fill(expectedType.toString()) +red(normal("  Got "))+fill(b.toString()) + " : "+b.type
+            console.log(warning)
+            print(warning);
+            print(blue(normal("(Failed definitional equality check)")))
+            if(USE_MATHJAX) MathJax.typeset();
+            b = ErrorObject
+            //return null;
+        }else{
+            print(blue(normal("(Using definitional equality)")))
         }
     }
     
@@ -836,18 +925,17 @@ function clearArray(a){
 //number to nat
 function N(n){
     n=Math.floor(n)
-    n=n>=0?n:0
+    n=n>=0?n:0 //ignore negative numbers
+    //console.log("Warning negative number ")
     if(USE_FASTNAT){
         if(n==0) return zero;
-        if(n==1) return one;
-        else 
-        {
-            var result = new Var(FastNat.symbol,Nat)
-            result.notation = fastNatNotation(n)
-            result.value = BigInt(n)
-            return result
-        }
+        //if(n==1) return one;
+        else return NewFastNat(BigInt(n))
     }
+    return Unary(n)
+}
+
+function Unary(n){
     var result=zero
     for(var i=0;i<n;i++){
         result = succ.apply(result)
@@ -895,6 +983,7 @@ function toFloat32(n){
     n = new Float32Array([n])[0];
     var result = new C("{"+n+"}"+subscript("f32"), Float32)//n.toPrecision(8)
     result.value = n
+    result.fastValue = n;
     return result;
 }
 function toFloat16(n){
@@ -932,7 +1021,7 @@ function defEqual(a,b){
 }
 
 
-function equiv(a,b, varis=[], RD=new ReplaceData(), fastnatcount=0){ 
+function equiv(a,b, varis=[], RD=new ReplaceData()){ 
 
     //Check WildCards in b that match with a
     for(var i=0;i<varis.length;i++){
@@ -946,27 +1035,27 @@ function equiv(a,b, varis=[], RD=new ReplaceData(), fastnatcount=0){
             else return false
         }
     }
-    if(false) //need to update replace
-    if(FastNat!=undefined && succ!=undefined && (a.symbol==FastNat.symbol || b.symbol==FastNat.symbol)){
+
+    //Comparing fastnats S(S(S(2))) to S(S(3)) for example
+    if(FastNat!=undefined && succ!=undefined){
         if(b.symbol==FastNat.symbol){ 
-            if(a.symbol==FastNat.symbol) return b.value+fastnatcount==a.value
-            if(a.symbol == zero.symbol) return b.value+fastnatcount==0
-            if( a.kind=="applied" && a.first.symbol==succ.symbol){ 
-                if( b.value==0 ) return false
-                return equiv(a.second,b, varis,RD, fastnatcount-1 )
+            if(a.symbol == FastNat.symbol) return b.value==a.value
+            if(a.symbol == zero.symbol) return b.value==0
+            if(a.kind=="applied" && a.first.symbol==succ.symbol){ 
+                return b.value!=0 && equiv(a.second, NewFastNat(b.value-BigInt(1))  , varis,RD )
             }
             return false
         }
         if(a.symbol==FastNat.symbol){  
-            if(b.symbol == FastNat.symbol)return a.value-fastnatcount==b.value
-            if(b.symbol == zero.symbol) return a.value-fastnatcount==0        
+            if(b.symbol == FastNat.symbol) return a.value==b.value
+            if(b.symbol == zero.symbol) return a.value==0        
             if(b.kind=="applied" && b.first.symbol==succ.symbol){ 
-                if(a.value==0) return false 
-                return equiv(a,b.second, varis,RD, fastnatcount+1 )        
+                return a.value!=0 && equiv(NewFastNat(a.value-BigInt(1)) ,b.second, varis,RD )        
             }
             return false
         }
     }
+
 
     if(a.value!=b.value) return false //fastnat
     
@@ -985,6 +1074,41 @@ function equiv(a,b, varis=[], RD=new ReplaceData(), fastnatcount=0){
     print("***UNKNOWN KIND "+a.kind+ "****")
     return false;
 }
+
+function EQUIV(a,b){
+    if(equiv(a,b)) return True;
+    else return False;
+}
+
+//MATCH( S(x), S(5), [x])
+//better syntax = MATCH(Nat, S(5), x=>S(x) )  == IFMATCH( S(5), x=>S(x), x=>x, [Nat])
+function MATCH( a,b, varis ){
+    var RD=new ReplaceData()
+    equiv(b,a,varis,RD)
+    return RD.assigned
+}
+//IFMATCH(x=>S(x), x=>Nat.times(x,x), 0 , [Nat]) //we should be ablt to deduce types
+//IFMATCH(x=>y=>Nat.plus(x,y), x=>y=>Nat.plus(x,y), 0 , [Nat,Nat] )
+//F = FUN(Nat, z=>  IFMATCH( z, 0, 1, IFMATCH( z, x=>S(x),  S(x)*F(x), 0, [Nat]  )  , [Nat]))
+//GETTYPE(x=>S(x))
+
+//IFMATCH( Nat.plus(13,15), x=>y=>Nat.plus(x,y), x=>y=>[x,y], [Nat,Nat] )
+function IFMATCH(a,b,c,types){
+    var varis=[]
+    var i=0
+    while( b instanceof Function ){
+        var x = new C(getUniqueName(),types[i++])
+        varis.push(x)
+        b=b(x)
+    }
+    var RD=new ReplaceData()
+    equiv(a,b,varis,RD)
+    for(var j=0;j<types.length;j++){
+        c=c(RD.assigned[j])
+    }
+    return c
+}
+
 
 function contains(big, small){ 
     if(equiv(big,small)) return true;
@@ -1007,11 +1131,15 @@ var replacementsFound=0
 
 function REPLACE(big, small, newterm ,varis=[], RD=new ReplaceData()){
     var temp = RD.assigned.slice()
-    if(equiv(big,small, varis,RD)) {
-        replacementsFound ++
-        return newterm; //<----Let's not clone it. Will this be problem???
+    if(equiv(big,small, varis,RD)  ) {
+        replacementsFound ++ //not quite true! 
+        if (RD.which=="All" || RD.which.indexOf(replacementsFound)>=0) {
+            return newterm; //<----Let's not clone it. Will this be problem???
+        } 
+        
         //cloneInstantiated(newterm) //<--- do replacement here???
-    }else RD.assigned=temp
+    }
+    RD.assigned=temp
     //Shouldn't match things in functions(?)
     if(big.kind=="applied"|| big.kind=="imply" || big.kind=="pair" || big.kind=="rule"){ //forall needed?
         var newbig = cloneInstantiated(big)
@@ -1040,10 +1168,10 @@ function REPLACE(big, small, newterm ,varis=[], RD=new ReplaceData()){
 
 
 function findMatch(big, small, newterm ,varis=[]){  //, RD.assigned=[]
-    var temp = RD.assigned.slice()
+    //var temp = RD.assigned.slice() //<-----------do we need this???
     if(equiv(big,small)){//, varis,RD)) {
         return true
-    }else RD.assigned=temp
+    }//else RD.assigned=temp //<-----------do we need this???
     if(big.kind=="applied"|| big.kind=="imply" || big.kind=="pair" || big.kind=="rule"){ 
         return  findMatch(big.first, small)// , newterm,varis,RD)
             ||  findMatch(big.second, small)//, newterm,varis,RD)
@@ -1092,6 +1220,7 @@ var debug=false
 class ReplaceData{
     constructor(){
         this.assigned=[]
+        this.which = "All"
     }
 }
 
@@ -1113,10 +1242,11 @@ function replaceUsing(big, rule){
     var result = REPLACE(big, root.first, root.second, varis,RD)    
 
     if(RD.assigned.length==0 || !RD.assigned.includes(null) ){
-
+    
         var resultType= REPLACE(big.type, root.first, root.second, varis,RD)
 
         for(var i=0;i<varis.length;i++){
+            //console.log("replace "+fill(varis[i].toString())+" with "+fill(RD.assigned[i].toString()));
             result = REPLACE(result,varis[i] , RD.assigned[i] )
             resultType = REPLACE(resultType,varis[i] , RD.assigned[i] )
         }
@@ -1126,7 +1256,7 @@ function replaceUsing(big, rule){
     return result
 }
 
-function replaceUsing2(big, rule){
+function replaceUsingEquality(big, rule){
     
     var varis=[]
     var RD=new ReplaceData()
@@ -1159,9 +1289,11 @@ function replaceUsing2(big, rule){
 
     //WARNING--breaks if there is unused FORALL(n=> in rule---
     
-    if(RD.assigned.length==0 || !RD.assigned.includes(null) ){        
+    if(RD.assigned.length==0 || !RD.assigned.includes(null) ){      
+      //  console.log("Replacement2 found:"+RD.assigned.length+" " +rule);  
         var resultType= REPLACE(big.type, x,y, varis, RD)
         for(var i=0;i<varis.length;i++){
+            //console.log("replace2 "+fill(varis[i].toString())+" with "+RD.assigned[i].kind+" "+fill(RD.assigned[i].toString()));
             result = REPLACE(result,varis[i] , RD.assigned[i] )
             resultType = REPLACE(resultType,varis[i] , RD.assigned[i] )
         }
@@ -1185,7 +1317,7 @@ function RW2(big, rules, repeat=1){
     for(var r=0;r<repeat;r++)
     for(var i=0;i<rules.length;i++){
         if(rules[i])
-        big = replaceUsing2(big,rules[i].type)
+        big = replaceUsingEquality(big,rules[i].type)
     }
     return big
 }
@@ -1269,14 +1401,16 @@ function color(s,col){
 //-----------------SIMPLIFICATION-------------------------
 function ApplyUnappliedFunctions(big){
     if(big.kind=="applied" && big.first.kind=="fun"){
-        return APPLY(big.first,big.second)
+        return APPLY(big.first, big.second)
     }
+    
     if(big.kind=="applied"|| big.kind=="imply" || big.kind=="pair" || big.kind=="rule"){ //forall needed?
         var newbig = cloneInstantiated(big)
         newbig.first = ApplyUnappliedFunctions(big.first);
-        newbig.second =  ApplyUnappliedFunctions(big.second)
+        newbig.second = ApplyUnappliedFunctions(big.second)
         return newbig;
     }
+    
     if(big.kind=="forall" || big.kind=="fun"){ //need checking:
         var newtype = ApplyUnappliedFunctions(big.first);
         var vari=new C(getUniqueName(),newtype)
@@ -1288,6 +1422,62 @@ function ApplyUnappliedFunctions(big){
     if(big.kind!="atom")
     print("kind not found in replace "+big.kind)
     return cloneInstantiated(big)
+}
+
+
+//-----------------SIMPLIFICATION-------------------------
+function ExpandNats(big){    
+    if(typeof big === 'number') return Unary(big)
+
+    if(big.kind=="applied"|| big.kind=="imply" || big.kind=="pair" || big.kind=="rule"){ //forall needed?
+        var newbig = cloneInstantiated(big)
+        newbig.first = ExpandNats(big.first);
+        newbig.second = ExpandNats(big.second)
+        return newbig;
+    } 
+    if(big.kind=="forall" || big.kind=="fun"){ //need checking:
+        var newtype = ExpandNats(big.first);
+        var vari=new C(getUniqueName(),newtype)
+        //var newbig = cloneInstantiated(big)
+        var s = ExpandNats(big.appliedTo(vari))
+        return big.kind=="forall"? FORALL(newtype,x=>REPLACE(s,vari,x)): FUN(newtype,x=>REPLACE(s,vari,x))
+    }
+    if(big.kind!="atom")
+    print("kind not found in replace "+big.kind)
+    if(big.symbol == FastNat.symbol){
+        //return S(S(S(S(0))))
+        var n=big.value
+        return Unary(n)
+    }
+    return cloneInstantiated(big)
+}
+
+
+function NewFastNat(val){
+    var result = new Var(FastNat.symbol, Nat)
+    result.value = val
+    result.notation = fastNatNotation(val)
+    result.fastValue= val;
+    return result
+}
+
+function NewStringObj(val){
+    var result = new Var("string"+getUniqueName(), mystring)
+    result.value = val
+    result.notation = normal("“"+val+"”")
+    result.fastValue= val;
+    return result
+}
+
+function NewFastList(type,val){
+    var result = new Var("FastList", List(type))
+    result.value = val
+
+    var s="\\{";
+    for(var i=0;i<Math.min(4,val.length);i++) s+=val[i]+","
+    result.notation = s+"...\\}";//"\\{...\\}"
+    result.fastValue = val;
+    return result
 }
 
 function ApplyFastNats(big){
@@ -1308,10 +1498,7 @@ function ApplyFastNats(big){
             else symbolFound=false
             if(symbolFound){
                 if (val==0) return zero
-                var result = new Var(FastNat.symbol, Nat)
-                result.value = val
-                result.notation = fastNatNotation(val)
-                return result
+                return NewFastNat(val)
             }
         }
         
@@ -1320,17 +1507,11 @@ function ApplyFastNats(big){
    // if( equiv(big , succ(X),[X] ) && RD.assigned[0].symbol==FatNat.symbol ){
     if(big.kind == "applied" && big.first.symbol==succ.symbol && big.second.symbol==FastNat.symbol){
         var val = big.second.value + BigInt(1)
-        var result = new Var(FastNat.symbol, Nat)
-        result.value = val
-        result.notation = fastNatNotation(val)
-        return result
+        return NewFastNat(val)
     }
     if(big.symbol==Nat.zero.symbol){
         var val = BigInt(0)
-        var result = new Var(FastNat.symbol, Nat)
-        result.value = val
-        result.notation = fastNatNotation(val)
-        return result
+        return NewFastNat(val)
     }
 
     //replace S(S(0)) with FASTNAT"2"
@@ -1365,6 +1546,7 @@ var dofc=!false
 function SIMP(z, M=1, fullsimp=false){
     var topologyProps = [boundProp]
     var last=null
+    z = ApplyUnappliedFunctions(z) //<---works if I put it here for some reason :s
     //alert(fullsimp)
     for(var i=0;i<M || fullsimp;i++){ //realPartRule,
         if(USE_FASTNAT)
@@ -1393,6 +1575,7 @@ function SIMP(z, M=1, fullsimp=false){
         ])
         z=RW2(z,[
             sumProp, sumProp0,
+            prodProp, prodProp0,
             iterProp, iterProp0
             ,sinPiZero,sinZero,cosZero
 
@@ -1411,16 +1594,19 @@ function SIMP(z, M=1, fullsimp=false){
 
             ,eplusProp
 
+            ,listLength1,listLength0
+
             //,listFromFunc1
             //,listFromFunc0
             //ellipticPlusProp
         ])//summation rules
-if(dofc)  z=RW2(z,[ composeFunc2])
+        if(dofc)  z=RW2(z,[ composeFunc2 ])
 
         z=RW2(z,topologyProps)
 
    //Apply any unapplied functions
-        z = ApplyUnappliedFunctions(z)
+   //if(window.appf)    
+   //z = ApplyUnappliedFunctions(z)
 //GOES WRONG due to not renaming variables???
         //iter(Nat,FUN(Nat, x=>Nat.plus(x,5)), 10,2) 
 
@@ -1439,6 +1625,8 @@ if(dofc)  z=RW2(z,[ composeFunc2])
 
     return z
 }
+
+//window.appf=true
 
 /*
 f=FUN(Real, z=>equals.apply(Real,Sin(z),Cos(z))  )
@@ -1505,21 +1693,34 @@ function matchOld(A,B){
 
 //------------NOT IDEAL SINCE if we embed these functions it will cause an error due to same IDS---------------------
 
-function match(A,B){
+function match(A,B,which="All"){
     var vari=new C(getUniqueName(),B.type) //Since this is unique to our new function it may be fine to use?
     replacementsFound = 0
-    var F=REPLACE(A,B,vari)
+    var RD=new ReplaceData()
+    RD.which = which
+    var F=REPLACE(A,B,vari,[],RD)
     if(replacementsFound ==0){
         print(red("No matches found"))
         //return ErrorObject
     }
+    //why do we do it twice? (Seems like we have to)
     return FUN(B.type,x=>REPLACE(F,vari,x) )
 }
+/*
+function match2(A,B,which="All"){
+    var vari=new C(getUniqueName(),B.type) //Since this is unique to our new function it may be fine to use?
+    replacementsFound = 0
+    var RD=new ReplaceData()
+    RD.which = which
+    return FUN(B.type,x=>REPLACE(A,B,x,[],RD) )
+}*/
+
+var ABSTRACT = match;
 
 /*
 f=defineVar("f",match(two,one));
 g=f(f(3));
-replaceUsing2(g,f.proof.type)
+replaceUsingEquality(g,f.proof.type)
 */
 
 
@@ -1541,6 +1742,11 @@ function insertAfter(referenceNode, newNode) {
 function removeElement(id) {
     var elem = document.getElementById(id);
     return elem.parentNode.removeChild(elem);
+}
+
+function getInput(message){
+    return evalObject(eval(prompt(message)))
+    //return evalObject(result)
 }
 
 ///----------------------GRAPHICS----------------------
@@ -2051,3 +2257,66 @@ var base64 = "data:image/svg+xml;base64, " + window.btoa(unescape(encodeURICompo
 }
 
 //eqGraph(ComplexMk(Rat)(2,3.5))
+
+
+
+function playAudio(floatList) {
+    // Your float array data
+    const floatArray = new Float32Array(floatList);
+
+    // Create an audio context
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)({
+        sampleRate: 22050
+    });
+
+    // Create an audio buffer
+    console.log("Samplerate" , audioContext.sampleRate)
+    const audioBuffer = audioContext.createBuffer(1, floatArray.length, audioContext.sampleRate);
+
+    // Fill the buffer with the float array data
+    audioBuffer.copyToChannel(floatArray, 0, 0);
+
+    // Create a buffer source node
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+
+    // Connect the source to the context's destination (the speakers)
+    source.connect(audioContext.destination);
+
+    // Start the source
+    source.start();
+}
+
+//Replace everything with it's definition
+
+function finddef(A){
+    if(A.def!=undefined) return A
+    if(A.first){
+        var F=finddef(A.first)
+        if(F!=null) return F
+    }
+    if(A.second){
+        var S=finddef(A.second)
+        if(S!=null) return S
+    }
+    return null
+}
+
+function DEFEVAL(A){
+    var R=A
+    var B;
+    var i=0;
+    while((B=finddef(R)) && i<10000){
+        //console.log(i+"Found :" + fill(B.toString()))
+        R = REPLACE(R,B,B.def)
+        i++;
+    }
+    return ApplyUnappliedFunctions(R); //<--should do this multiple times
+}
+ 
+
+function DEFEQUIV(A,B){ 
+    var A2=DEFEVAL(A)
+    var B2=DEFEVAL(B)
+    return equiv(A2,B2)
+}

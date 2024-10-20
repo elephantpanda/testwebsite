@@ -1,0 +1,97 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="doc.css">
+</head>
+
+
+<body>
+
+
+<div class="content">
+<h2>Symbols and Definitions</h2>
+A symbol such as \(\pi\) can be manipulated on it's own right, for example:
+<script>
+    createInput(
+`Real.power(Pi,2)
+`)
+</script>
+
+or we can drill down and use it's definition as follows:
+
+<script>
+    createInput(
+`Pi.def
+`)
+</script>
+
+<h2>Defining our own variables</h2>
+There are two ways to define variables. We can just create a free variable of a given type like this:
+<script>
+   createInput(
+`Var("p",Prime)`)
+</script>
+Generally, we should not be doing this! It can be useful for defining new types or axioms.
+<br>
+<h3>Aliases</h3>
+We can create a new symbol which is basically an alias for another expression like so (Bug in type when simplified):
+
+
+<script>
+    createInput(
+`defineVar("cube", FUN(Type, T=>FUN(T, x=>power(T,x,3)  )  ) );
+cube.def
+`)
+</script>
+
+We can define the notation for it using latex as:
+
+<script>
+    createInput(
+`cube.notation = t=>x=>"{"+x+"}^3";
+`)
+</script>
+
+We can define a fast evaluator for it:
+
+<script>
+    createInput(
+`cube.fastValue = t=>x=> x*x*x
+`)
+</script>
+
+
+And we can call it as:
+
+<script>
+ createInput(
+`cube(Int,5)
+`)
+</script>
+<br>
+Finally we have the automatically created proof that the symbol is equal to it's definition:
+
+<script>
+    createInput(
+   `cube.proof
+   `)
+   </script>
+<br>
+We can use it like
+
+<script>
+    createInput(
+   `REPLACE(cube(Int,5),cube,cube.def)`)
+   </script>
+
+<h3> Result</h3>
+We can use result to get the last calculated result:
+<script>
+    createInput(
+   `result`)
+   </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+<div class="content">
+<h1>List of Definitions of Symbols</h1>
+
+<script>
+    for(key in window){
+        var obj=window[key];
+        if(key!="⊤")
+        if(obj && obj["proof"]!=null){
+            createInput(key+".proof.type")
+        }
+    }
+</script>
+
+
+
+$$\sqrt{1}$$
+</div>
+</html>

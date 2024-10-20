@@ -16,15 +16,14 @@
 
 The way to formulate that the number of rational points on a particular elliptic curve is finite is:<br>
 
-exists N , forall x:Rat, y:Rat , y^2=x^3+4x
-
 <script>
     createInput(
 `exists(Rat, FUN(Rat,N=>FORALL(Rat,x=>FORALL(Rat, y=> equals(Rat, power(Rat,y,2) , plus(Rat, power(Rat,x,3) , times(Rat, 4, x)    )    ).to( Prop.and( lt(Rat, x ,N   ) , lt(Rat, y, N)  )    )        ))  ))
 
 `.replaceAll("\\","\\\\"))
 </script>
-
+<br>
+<!---
 The field is: \( E_{a,b}(\mathbb{Q})  = \Sigma(x:\mathbb{Q})\Sigma(y:\mathbb{Q})(y^2=x^3+ax + b)    \) ?
 
 The sum/product/group formula for points on an elliptic curve is:
@@ -34,6 +33,7 @@ negation/inverse : (x,-y)
 addition/multiplication: ( lambda^2 - x1 - x2 , -lambda (lambda^2 - x1 - x2) + lambda x1 - y1 ) , with lambda =(y2-y1)/(x2-x1)
 
 A+B+(A*B) = (lambda^2, )
+--->
 <br>
 
 <h2>Elliptic Addition</h2>

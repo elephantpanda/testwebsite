@@ -21,15 +21,15 @@ This is an example of a dependent field. The complex numbers can be over any fie
 To create a complex number we can write:
 
 <script>
-    createInput("ComplexMk(Rat)(2,3.5)")
+    createInput("Complex.mk(Rat)(2,3.5)")
 </script>
 
 We can multply two complex numbers together:
 
 <script>
     createInput(
-`a = ComplexMk(Rat)(2,3.5)
-b= ComplexMk(Rat)(5,6.5)
+`a = Complex.mk(Rat)(2,3.5)
+b= Complex.mk(Rat)(5,6.5)
 times(Complex(Rat))(a,b)`)
 </script>
 
@@ -37,7 +37,8 @@ You can get the real part and complex part
 
 <script>
     createInput(
-`a = ComplexMk(Rat)(2,3.5);realPart(Rat)(a);
+`a = Complex.mk(Rat)(2,3.5);
+realPart(Rat)(a);
 imPart(Rat)(a)`)
 </script>
 

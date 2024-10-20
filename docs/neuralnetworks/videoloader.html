@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Loader</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/protobufjs/dist/protobuf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.webgpu.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort-wasm.min.js"></script>
+
+    <script src="../../typetheory.js" ></script>
+    <script src="../../definitions.js" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="../doc.css" >
+</head>
+<body>
+    <div class="content">
+        <h1>Video Loader</h1>
+        Click to load a neural network (ONNX) file and display it as a graph<br>
+        (Note: It only displays one output)<br>
+    Load video: <input type="file" id="videoFileInput" >
+
+    <video id="videoElement" width=25% height=25% controls></video><canvas id="hiddencanvas" style="display:none"></canvas>
+    <br>
+    <div id="output"></div>
+    <script>
+        createInput("")
+    </script>
+    <script>
+document.getElementById('videoFileInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const videoElement = document.getElementById('videoElement');
+        videoElement.src = URL.createObjectURL(file);
+
+        videoElement.onloadedmetadata = function() {
+            // Get video dimensions
+            const width = videoElement.videoWidth;
+            const height = videoElement.videoHeight;
+
+            // Calculate number of frames
+            const duration = videoElement.duration; // Duration in seconds
+            const frameRate = 30; // Assuming a frame rate of 30 FPS (you may need to adjust this)
+            const numberOfFrames = Math.floor(duration * frameRate);
+
+            // Display video info
+
+            document.getElementById('output').innerHTML = width+" x "+height+" x "+numberOfFrames;
+
+            var videoObj = Var("myvideo",Video); videoObj.fastValue = videoElement; 
+            //var videoObj = Var("myvideo",MultiArray(Float32,LIST(numberOfFrames,3,height,width)) )
+            print(videoObj+":"+videoObj.type)
+            MathJax.typeset()
+            //videoElement.play()
+        };
+    }
+});
+
+    </script>
+
+    </div>
+</body>
+</html>

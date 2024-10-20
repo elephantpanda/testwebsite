@@ -12,10 +12,13 @@
 
 <div class="content">
 <h1>General Relativity</h1>
+General Relativty is written in terms of tensor fields. 
+
 <h2>Metric</h2>
 
-We define the metric by  
 
+
+First we define the variables:
 <script>
     createInput(
 `mu = Var("\\mu",Zmod(4));
@@ -23,20 +26,28 @@ nu = Var("\\nu",Zmod(4));
 tau = Var("\\tau",Zmod(4));
 sigma = Var("\\sigma", Zmod(4));
 
-vec4 = Zmod(4).to(Real);
-x = Var("x",vec4);
-phi = Var("\\phi",(vec4).to(Real));
+R4 = Vec(R,4);//Zmod(4).to(Real);
+x = Var("x",R4);
+phi = Var("\\phi",R4.to(Real));
+`.replaceAll("\\","\\\\"))
+</script>
 
-g = Var(i=>j=>"g_{"+i+" "+j+"}",Zmod(4).to(Zmod(4).to((vec4).to( Real))));
-ginv = Var(i=>j=>"g^{"+i+" "+j+"}",Zmod(4).to(Zmod(4).to((vec4).to( Real))));
+We define the metric by  
+<script>
+    createInput(
+`
+//We should use matrix notation here(?)
+
+g = Var(i=>j=>"g_{"+i+" "+j+"}",Zmod(4).to(Zmod(4).to(R4.to( Real))));
+ginv = Var(i=>j=>"g^{"+i+" "+j+"}",Zmod(4).to(Zmod(4).to(R4.to( Real))));
 
 g(mu,nu)(x);
-sub(vec4.to(R), sub( vec4.to(R), PDeriv(4)(tau)(g(mu,nu)) ,PDeriv(4)(mu)(g(tau,nu)))   , 
+sub(R4.to(R), sub( R4.to(R), PDeriv(R,4)(tau)(g(mu,nu)) ,PDeriv(R,4)(mu)(g(tau,nu)))   , 
 
-PDeriv(4)(nu)(g(mu,tau))) ;
+PDeriv(R,4)(nu)(g(mu,tau))) ;
 
 gamma=defineVar(x=>y=>z=>"\\Gamma_{"+x+" "+y+" "+z+"}", FUN(Zmod(4),i=>FUN(Zmod(4),j=>FUN(Zmod(4),k=>
-sub(vec4.to(R), sub( vec4.to(R), PDeriv(4)(tau)(g(mu,nu)) ,PDeriv(4)(mu)(g(tau,nu)))   , PDeriv(4)(nu)(g(mu,tau)))   ))) );
+sub(R4.to(R), sub( R4.to(R), PDeriv(R,4)(tau)(g(mu,nu)) ,PDeriv(R,4)(mu)(g(tau,nu)))   , PDeriv(R,4)(nu)(g(mu,tau)))   ))) );
 
 gamma(mu,nu,tau)(x)
 t=phi.type
@@ -47,10 +58,11 @@ DotT(t)(4)( ginv(i), gamma(j,k) )
 Gamma(mu,nu,tau);
 
 "The first two terms of the Riemann curvature tensor are:";
-sub(t,PDeriv(4)(sigma)(Gamma(mu,nu,tau)),PDeriv(4)(tau)(Gamma(mu,nu,sigma)) );
+sub(t,PDeriv(R,4)(sigma)(Gamma(mu,nu,tau)),PDeriv(R,4)(tau)(Gamma(mu,nu,sigma)) );
 
-Riemann = Var(x=>y=>z=>t=>"R^{"+x+"}_{"+y+" "+z+" "+t+"}", Zmod(4).to(Zmod(4).to(Zmod(4).to(Zmod(4).to(  Zmod(4).to(Real).to(Real) ) ))  ))
-TraceT(t)(4)(TraceT(Riemann(1,2).type)(4)(Riemann))
+Riemann = Var(x=>y=>z=>t=>"R^{"+x+"}_{"+y+" "+z+" "+t+"}", Zmod(4).to(Zmod(4).to(Zmod(4).to(Zmod(4).to(  R4.to(Real) ) ))  ));
+Ricci = TraceT(Riemann(1,2).type)(4)(Riemann);
+RicciScalar = TraceT(t)(4)(Ricci)
 
 `.replaceAll("\\","\\\\"))
 </script>
@@ -62,10 +74,17 @@ or \( (R^b_c)^{a}_d  =  D_{b} \Gamma^c - D_{c} \Gamma^b   +   \Gamma_b \times \G
 
 <script>
     createInput(
-`g=Var("g",GL(4)(Vec(4,R).to(R))); 
+`g=Var("g",GL(4)(Vec(R,4).to(R))); 
+g=Var("g",Vec(R,4).to(Tensor(R,4,2))); 
+g=Var("g",Tensor( Vec(R,4).to(R) ,4,2) )
+//perhaps there needs to be a tensor-field type(?): g = TensorField(inputspace=R,dim=4,outputspace=R,indices=2)
+//as they transform a certain way under rotations
+h=Var("h",Tensor(R,4,2));
+Tensor.get(R,4,2,h,toList([nu,mu]))
 `)
 </script>
 
+We have a general problem of a function like \(x\Rightarrow y\Rightarrow \) and we want to curry either x or y first. Really we would like to write \(f(x,\_)\)
 
 $$\sqrt{1}$$
 </div>

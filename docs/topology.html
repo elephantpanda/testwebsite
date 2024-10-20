@@ -44,8 +44,9 @@ So for a circle this is:
 We can use the conditional construct to form subsets:
 <script>
     createInput(`
-isOnCircle = FUN(Complex(Real), z=>Real.equals( Real.plus(power(Real,realPart(Real,z),2) ,power(Real,imPart(Real,z),2)), Real.one));
-S2   =  conditional(Complex(Real),isOnCircle );
+isOnCircle=defineVar("isOnCircle", FUN(Complex(Real), z=>Real.equals( Real.plus(power(Real,realPart(Real,z),2) ,power(Real,imPart(Real,z),2)), Real.one)));
+isOnCircle.def;
+S2   =  defineVar(\`S_{2}\`,conditional(Complex(Real),isOnCircle ));
 S2.mk = conditional.mk(Complex(Real),isOnCircle);
 S2.mk( Complex.mk(Real)(3/5,4/5) )
     `)

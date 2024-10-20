@@ -74,11 +74,11 @@ Let us prove Socrates is mortal. This is proved using the intro function which t
 
 <script>
 createInput(
-`var human = Var("humans",Type);
-var Socrates = Var("Socrates",human);
-var isMortal = Var("isMortal",human.to(Prop));
-var allHumansMortal = Var("allHumansMortal", FORALL(human, h=>isMortal(h)));
-allHumansMortal.type;
+`AXIOM("human",Type);
+AXIOM("Socrates",human);
+AXIOM("isMortal",human.to(Prop));
+AXIOM("allHumansMortal", FORALL(human, h=>isMortal(h)));
+
 intro(human)(Socrates)(isMortal)(allHumansMortal)
 `)
 </script>

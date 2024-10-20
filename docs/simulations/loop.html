@@ -1,0 +1,61 @@
+
+<canvas id="canvs"></canvas>
+
+<div id="output"></div>
+
+<textarea id="input" style="width:100%" rows=10>
+    nextFrame = w=>{
+        w.text =  w.mouseX+","+w.mouseY
+        return w;
+    }
+</textarea>
+<button onclick="go()">GO</button>
+
+
+<script>
+
+//user defined:
+function go(){
+    eval(document.getElementById("input").value)
+}
+
+
+
+//internal
+
+
+
+window.onmousemove = mouseMoveEvent
+
+var mouseX;
+var mouseY;
+
+function mouseMoveEvent(e){
+    mouseX=e.pageX;
+    mouseY=e.pageY;
+}
+
+
+var w={}
+
+
+function update(){
+    w.mouseX=mouseX;
+    w.mouseY=mouseY;
+
+    w = nextFrame(w);
+
+    document.getElementById("output").innerHTML = w.text
+
+}
+
+
+
+
+
+setInterval(update,50)
+
+
+
+
+</script>

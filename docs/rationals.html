@@ -1,0 +1,54 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Rational Numbers</h1>
+The rationals will be defined in terms of a pair of integers. \(\mathbb{Q} =  \mathbb{Z}\times \mathbb{Z}_{\neq 0}  / \langle  (x,y)\sim(w,z) \iff    xz=wy   \rangle  \). Strictly speaking we should include a proof that the second argument is non-zero in the constructor, however for brevity we omit this.
+
+
+<script>
+    createInput("Rat.zero")
+</script>
+
+To create a positive and negative rationals:
+
+<script>
+    createInput("Rat.mk(1,2)");
+    createInput("Rat.mk(-3,4)");
+</script>
+
+For convenience we can also just write the number as a decimal and it will convert it to a rational number.
+<br>
+We can multply two natural numbers together:
+
+<script>
+    createInput(
+`Rat.times(Rat.mk(2,3),Rat.mk(1,4))`)
+</script>
+<br>
+And add them:
+
+<script>
+    createInput(
+`Rat.plus(Rat.mk(2,3),Rat.mk(1,4))`)
+</script>
+<br>
+Strictly speaking the constructor should be of this type:
+
+<script>
+createInput(`Var("Ratmk2",Int.to(conditional(Int, FUN(Int, x=>Int.notequals(x,0))).to(Rat)))`)
+
+</script>
+
+</div>
+</html>
