@@ -13,24 +13,34 @@
 
 <div class="content">
 <h1>Vertex Algebra</h1>
-A vertex algebra can be thought of as an algebra with an infinite continuum of binary operators. \( u \otimes_z v \)
+A vertex algebra can be thought of as an algebra with an infinite continuum of binary operators. \( u \otimes_z v \)<br>
+These are algebras used in string theory and to give a representation of the Monster Group.
 
 <script>
     createInput(
-`x=Var("x",CR);
-y=Var("y",CR);
-z=Var("z",CR);
-u=Var("u",VO);
-v=Var("v",VO);
-w=Var("w",VO);
-equals(VO,VO.times(x,VO.one,v), v );
+`x = AXIOM("x",CR);
+y = AXIOM("y",CR);
+z = AXIOM("z",CR);
+u = AXIOM("u",VO);
+v = AXIOM("v",VO);
+w = AXIOM("w",VO);
 
-VO.times(x,u,VO.times(y,v,w));
+`)
+</script>
+<br>
+<h3>Properties</h3>
+We list some basic properties:
+<script>
+ createInput(
+`VO.times(x,u,VO.times(y,v,w));
 VO.times(y,v,VO.times(x,u,w));
 VO.times(y,VO.times(z,u,v),w);
+
+equals(VO,VO.times(x,VO.one,v), v );
 equals(VO,VO.trans(VO.one),VO.zero);
-equals(VO, sub(VO, VO.trans( VO.times(x,u,v) )  ,  VO.times(x,u,VO.trans(v) )    )  , 
-CDerivT(VO,FUN(CR,x=> VO.times(x,u,v) ))(x) )
+equals(VO,  VO.trans( VO.times(x,u,v) )  , plus(VO, VO.times(x,u,VO.trans(v) )      , 
+  VO.times(x,VO.trans( u ),v)      ) );
+equals(VO, VO.times(x,VO.trans( u ),v) , CDerivT(VO,FUN(CR,x=> VO.times(x,u,v) ))(x) )
 `.replace("\\","\\\\"))
 </script>
 

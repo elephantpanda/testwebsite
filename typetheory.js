@@ -54,6 +54,27 @@ function dir(obj){
     }
  }
 
+ //see also showVariables
+ function showAll(n=1000000){
+    var i=0
+    var obj=dict
+    for(var key in obj){
+        if(obj[key]!=null && obj[key].kind!=undefined){
+            //output.innerHTML+=key+"<br>";
+            try{
+                print(key+"="+fill(obj[key].toString())+":"+fill(obj[key].type.toString()))
+            }catch{
+                print("Error printing "+key)
+            }
+            i++;
+        } else{
+            //output.innerHTML+=key+" kind=undefined<br>"
+        }
+        if(i>n) break;
+    }
+    MathJax.typeset()
+ }
+
 /******************
 
 Rules are Propositions:
@@ -83,6 +104,11 @@ function fill(f){
     return f
 }
 
+function noblank(f){
+    return f=="■"?"":f;
+}
+
+//not good!
 function showVariables(){
     var v=Object.keys( window )
     for(var i=numberWinVariables;i<v.length;i++){
@@ -172,18 +198,26 @@ function guessNumberType(result){
 }
 function toList(list ,type=null){
     if(type==null){
-        var L0=list[0];
-        if(typeof L0 =='number') L0 = guessNumberType(L0)  
-        if(typeof L0 =='string') L0 = NewStringObj(L0) 
-        if(typeof L0 =='boolean') L0 = L0?True:False;
-        if(L0 instanceof Array) L0 = toList(L0)
-        type=L0.type
+        if(list.length==0) type=Nat;
+        else{
+            var L0=list[0];
+            if(typeof L0 =='number') L0 = guessNumberType(L0)  
+            if(typeof L0 =='string') L0 = NewStringObj(L0) 
+            if(typeof L0 =='boolean') L0 = L0?True:False;
+            if(L0 instanceof Array) L0 = toList(L0)
+            type=L0.type
+        }
     }
     var L=LEnd(type)
     for(var i=0;i<list.length;i++){
         L=LNext(type, list[i],L)
     }
     return L
+}
+
+function toVect(list,type){
+    var L=toList(list,type)
+    return Vector.fromList(L.type.second, list.length, L)
 }
 /*
 function toFastList(list, type=null){
@@ -201,6 +235,11 @@ function toFastList(list, type=null){
 
 function LIST(...args){
     return toList(args)
+}
+
+function VECT(...args){
+    var list = toList(args);
+    return Vector.fromList(list.type.second, args.length, list)
 }
 
 /*
@@ -259,7 +298,9 @@ function fullsimplify(inputID){
 function doDefEval(inputID){
     var outputName = `output${inputID}`
     output=document.getElementById(outputName)
+    //result=REBUILD(result)
     result = DEFEVAL(results[inputID])
+    //result=REBUILD(result)
     results[inputID]=result
     print(fill(result.toString())+" : " +result.type)
     MathJax.typeset()
@@ -344,7 +385,8 @@ class C {
     by(f) {
         return f(this)
     }
-    inputForm(){
+    inputForm(){      
+        if(this.symbol=="FastNat") return this.value
         return this.symbol
     }
 }
@@ -391,6 +433,7 @@ function defineVar(name, def, notation){
             a.proof = Var(name+".proof",def.type.type.equals(def.type, a , def) ,true)
         }
     }
+    if(a.def.float)
     a.fastValue = a.def.float() //<-- default(?)
     return a
 }
@@ -549,6 +592,16 @@ class AppliedList{
         }
         return result+")";
     }
+    getTypeInputForm(){
+        var result="";
+        for(var i=0;i<this.second.length;i++){
+            //if(i>0) result+=".to("
+            result+=this.second[i].type.inputForm()
+            //if(i>0) result+=")";//"→"
+            if(i<this.second.length-1) result+="→"
+        }
+        return result + "→?"
+    }
 }
 
 function toAppliedList( B ){
@@ -560,6 +613,7 @@ function toAppliedList( B ){
     A.first = B;
     return A;
 }
+
 
 
 
@@ -802,7 +856,7 @@ function tryToConvertNumber(A,b){ //convert javascript-numerical b to type A
     else if(A.symbol==Real.symbol) b=toReal(b)
     else if( equiv(A, R2R) ) b=toConstFunc(b)
     else if(A.kind=="applied"){
-        if(A.first.symbol == Zmod.symbol) b= Zmod.fromNat( A.second,b)       
+        if(A.first.symbol == Zmod.symbol) b= Zmod.fromNat( A.second ,b)       
         if(A.first.symbol == Complex.symbol) b = ComplexMk(A.second)(  tryToConvertNumber(A.second,b) ,0)        
         if(A.first.symbol == Quaternion.symbol) b = QuaternionMk(A.second)(  tryToConvertNumber(A.second,b)  ,0,0,0)       
         if(A.first.symbol == Octonion.symbol) b = OctonionMk(A.second)(  tryToConvertNumber(A.second,b)  ,0,0,0,0,0,0,0)       
@@ -928,9 +982,10 @@ function N(n){
     n=n>=0?n:0 //ignore negative numbers
     //console.log("Warning negative number ")
     if(USE_FASTNAT){
-        if(n==0) return zero;
+        //if(n==0) return zero;
         //if(n==1) return one;
-        else return NewFastNat(BigInt(n))
+        //else 
+        return NewFastNat(BigInt(n))
     }
     return Unary(n)
 }
@@ -962,13 +1017,41 @@ function gcd(a, b) {   // 6   5
     return a;
 }
 
+function decimalToFraction(decimal, tolerance = 1.0e-15) {
+    let sign = decimal < 0 ? -1 : 1;
+    decimal = Math.abs(decimal);
+
+    let h1 = 1, h2 = 0;
+    let k1 = 0, k2 = 1;
+    let b = decimal;
+    do {
+        let a = Math.floor(b);
+        let aux = h1;
+        h1 = a * h1 + h2;
+        h2 = aux;
+
+        aux = k1;
+        k1 = a * k1 + k2;
+        k2 = aux;
+
+        b = 1 / (b - a);
+    } while (Math.abs(decimal - h1 / k1) > decimal * tolerance);
+
+    return { numerator: sign * h1, denominator: k1 };
+}
+
 function toRat(n){
     var sign=1;
     if(n<0) { n=-n; sign=-1;}
     if(Math.floor(n)==n) return RationalMk.apply(sign*n,1)
     else {
-        var den = Math.pow(10,n.countDecimals())
-        var num = Math.floor(n*den+0.5)
+        //var den = Math.pow(10,n.countDecimals())
+        //var num = Math.floor(n*den+0.5)
+        
+        var r = decimalToFraction(n)
+        var den=r.denominator;
+        var num=r.numerator;
+        console.log(num+"/"+den)
         var GCD = (num>den)? gcd(num,den) : gcd(den,num)
         return RationalMk.apply( sign*(num/GCD),den/GCD)
     }
@@ -1084,8 +1167,9 @@ function EQUIV(a,b){
 //better syntax = MATCH(Nat, S(5), x=>S(x) )  == IFMATCH( S(5), x=>S(x), x=>x, [Nat])
 function MATCH( a,b, varis ){
     var RD=new ReplaceData()
-    equiv(b,a,varis,RD)
+    if(equiv(b,a,varis,RD))
     return RD.assigned
+else return false
 }
 //IFMATCH(x=>S(x), x=>Nat.times(x,x), 0 , [Nat]) //we should be ablt to deduce types
 //IFMATCH(x=>y=>Nat.plus(x,y), x=>y=>Nat.plus(x,y), 0 , [Nat,Nat] )
@@ -1243,14 +1327,15 @@ function replaceUsing(big, rule){
 
     if(RD.assigned.length==0 || !RD.assigned.includes(null) ){
     
-        var resultType= REPLACE(big.type, root.first, root.second, varis,RD)
+        //var resultType= REPLACE(big.type, root.first, root.second, varis,RD)
 
         for(var i=0;i<varis.length;i++){
             //console.log("replace "+fill(varis[i].toString())+" with "+fill(RD.assigned[i].toString()));
             result = REPLACE(result,varis[i] , RD.assigned[i] )
-            resultType = REPLACE(resultType,varis[i] , RD.assigned[i] )
+          //  resultType = REPLACE(resultType,varis[i] , RD.assigned[i] )
         }
-        result.type= resultType
+        result=REBUILD(result)
+        //result.type= resultType
     }//else result = big
 
     return result
@@ -1289,16 +1374,22 @@ function replaceUsingEquality(big, rule){
 
     //WARNING--breaks if there is unused FORALL(n=> in rule---
     
+//****We don't just replace type of parent object... have to replace type of all child components too! ****/
+
     if(RD.assigned.length==0 || !RD.assigned.includes(null) ){      
       //  console.log("Replacement2 found:"+RD.assigned.length+" " +rule);  
-        var resultType= REPLACE(big.type, x,y, varis, RD)
+        //var resultType= REPLACE(big.type, x,y, varis, RD)
         for(var i=0;i<varis.length;i++){
             //console.log("replace2 "+fill(varis[i].toString())+" with "+RD.assigned[i].kind+" "+fill(RD.assigned[i].toString()));
             result = REPLACE(result,varis[i] , RD.assigned[i] )
-            resultType = REPLACE(resultType,varis[i] , RD.assigned[i] )
+          //  resultType = REPLACE(resultType,varis[i] , RD.assigned[i] )
         }
-        result.type= resultType
+        //result.type= resultType
+        result=REBUILD(result)
     }//else result = b
+
+
+    
 
     return result
 
@@ -1425,6 +1516,25 @@ function ApplyUnappliedFunctions(big){
 }
 
 
+function REBUILD(big){    
+    if(big.kind=="applied"){
+        return APPLY(REBUILD(big.first),REBUILD(big.second))
+    }
+    if(big.kind=="fun" ){//???
+        var newVari = new C(getUniqueName(),  REBUILD(big.first))
+        //var newVari= cloneInstantiated(big.vari, true)
+        //var S=REBUILD(big.second)
+        var S=REBUILD(big.appliedTo(newVari )) //REBUILD(big.second)
+        return new Fun(newVari, x=>REPLACE(S, newVari, x)) //<-- part of the problem is we are using REPLACE(!!!)
+    }
+    //if(big.kind!="atom")
+    //print("kind not found in replace "+big.kind)
+    //return big
+    
+    return cloneInstantiated(big)
+}
+
+
 //-----------------SIMPLIFICATION-------------------------
 function ExpandNats(big){    
     if(typeof big === 'number') return Unary(big)
@@ -1492,12 +1602,12 @@ function ApplyFastNats(big){
             var val = 0;
             var symbolFound=true
             if(symbol==plus.symbol) val = x.value + y.value
-            else if(symbol==sub.symbol) val = x.value - y.value
+            else if(symbol==sub.symbol) {val = x.value - y.value; if(val<0) val = BigInt(0);}
             else if(symbol==times.symbol) val = x.value * y.value
-            else if(symbol==divide.symbol) val = Math.floor(x/y) //accurate?
+            else if(symbol==divide.symbol && y!=0) val = x/y //accurate?
             else symbolFound=false
             if(symbolFound){
-                if (val==0) return zero
+                //if (val==0) return zero 
                 return NewFastNat(val)
             }
         }
@@ -1553,15 +1663,26 @@ function SIMP(z, M=1, fullsimp=false){
         z= ApplyFastNats(z)
        // z=RW2(z,[sqrtSquare])
 
-        z=RW(z,[mulOne,mulOneL,mulZero,mulZeroL,timesRule,plusRule3,subRule,addZero , addZeroL, powerRuleT ,powerOneT, factRuleN, factRule0     ,//imPartRule,
+        z=RW(z,[mulOne,mulOneL,mulZero,mulZeroL,
+            //timesRule,
+            plusRule3,subRule,addZero , addZeroL, 
+            //powerRuleT ,
+            powerOneT, 
+            powerZeroNat,powerZeroInt,
+            factRuleN, factRule0     ,//imPartRule,
          complexARule , 
+         rationalIntAddRule,//simplified
          rationalAddRule, rationalSubRule  ,intARule,intSRule, intMRule 
          ,onePower//ring
          ,qRe,qI,qJ,qK//rules of real part etc
         ])
          
         z=RW2(z,[realPartProof, imPartProof  , rationalTimesProof , rationalDivideProof,
-             rationalPowerProof, complexFProof, realSeriesProp
+             rationalPowerProof, complexFProof, realSeriesProp,
+
+             powerRuleT,
+
+             equalsT, notEqualNatL, notEqualNatR, equalNatReduce, ratEquals, intEquals
 
         ])
         //rings
@@ -1571,7 +1692,8 @@ function SIMP(z, M=1, fullsimp=false){
         , realMulProp   //These go wrong with: foo=FUN(Real,x=>plusF.apply(Real,x,1));deriv.apply(foo).apply(1)
         ,RealRatPlus,RealRatTimes,
 
-        sinSum, cosSum
+        sinSum, cosSum,
+       // realToRatProp//<--illegal operation
         ])
         z=RW2(z,[
             sumProp, sumProp0,
@@ -1594,8 +1716,16 @@ function SIMP(z, M=1, fullsimp=false){
 
             ,eplusProp
 
-            ,listLength1,listLength0
+            ,listLength1,listLength0,
 
+            GCDRule0,gcdRule,
+
+            zModEquals,
+
+            natDivideRule,NatDivideRule0, toDivRoundUp,
+
+            selectT,selectF
+            ,R2ROneL, R2ROneR
             //,listFromFunc1
             //,listFromFunc0
             //ellipticPlusProp
@@ -1609,6 +1739,8 @@ function SIMP(z, M=1, fullsimp=false){
    //z = ApplyUnappliedFunctions(z)
 //GOES WRONG due to not renaming variables???
         //iter(Nat,FUN(Nat, x=>Nat.plus(x,5)), 10,2) 
+
+        
 
 
         if(fullsimp) {
@@ -2241,6 +2373,8 @@ function eqGraph(exp){
     for(var i=0;i<nodeList.length;i++){
         var A=nodeList[i];
         var s=A.symbol=="FastNat"?A.value:(A.symbol[0]=="@"?variDict[A.symbol]: A.symbol);
+        //var t=A.kind=="AL"?A.getTypeInputForm():A.type.inputForm();
+        //dc.fillText(s+":"+t,A.x,A.y)
         dc.fillText(s,A.x, A.y )
     }
     dc.fill();
@@ -2311,7 +2445,8 @@ function DEFEVAL(A){
         R = REPLACE(R,B,B.def)
         i++;
     }
-    return ApplyUnappliedFunctions(R); //<--should do this multiple times
+    R= ApplyUnappliedFunctions(R); //<--should do this multiple times
+    return R;// REBUILD(R) //<--rebuild causes problems here!!!
 }
  
 
@@ -2319,4 +2454,48 @@ function DEFEQUIV(A,B){
     var A2=DEFEVAL(A)
     var B2=DEFEVAL(B)
     return equiv(A2,B2)
+}
+
+
+
+function vectorPlot(T, F, xmin,xmax, ymin, ymax  ){
+    W=400
+    dc = new newCanvas(W)
+
+    imageData = dc.getImageData(0,0,W,W)
+    data = imageData.data
+    clearCanvas(data,W)
+    var s = (xmax-xmin)/W
+    var n = new C("X", Vector(T,2));
+    n.fastValue = ()=>window.xVal;
+    n.liveVal=true;
+    var Fn =  F(n);
+    //console.log(fill(Fn.toString()))
+    var line=true;
+    var step=20;
+
+    for(var y=0;y<W;y+=step){
+        for(var x0=0;x0<W;x0+=step){
+            var x=x0 ;//+ ((y%(2*step)==0)?(step/2):0);
+            var yVal0 = (y-(W/2))*s
+            window.xVal = [xmin + x * s, ymin+y*s];
+            //n.fastValue = window.xVal;
+            //console.log(Fn.kind)
+            var result = Fn.float();
+            var x2=result[0];
+            var y2=result[1];
+            var mag=Math.sqrt(x2*x2+y2*y2)
+            if(mag>0.00001){
+            x2*=step/mag/2;
+            y2*=step/mag/2;
+            }
+            
+            dc.beginPath()
+            dc.moveTo(x-x2,y-y2)
+            dc.lineTo(x+x2,y+y2)
+            dc.stroke()
+        }
+    }
+
+    return 0;
 }

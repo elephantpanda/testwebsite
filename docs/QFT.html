@@ -13,9 +13,32 @@
 
 <div class="content">
 <h1>Quantum Field Theory</h1>
-In QFT we need such objects as functionals, path integrals and such linke.
+In QFT we need such objects as functionals \(\psi[A,\Psi]\), path integrals and such like.
+<br>
+There is also the operator formalism.
+<br>
+We also have the Feynman propagators \(\Delta_F(x,y)\) and time evolution functions \(K_t[\phi_{in},\phi_{out}] = \int e^{i\int_0^t \mathcal{L}[\phi]dt }D\phi \).
+<br>
+Also the vacuum states \(\psi[\phi]_{Vac} = \frac{ e^{-\int_{-\infty}^t \mathcal{L}[\phi]dt }           }{\sqrt{ e^{-\int_{-\infty}^{\infty} \mathcal{L}[\phi]dt }  } } \) (?)
+<br>
+Also we have dirac delta functions.
+<br>
+We could also do CFT in 1+1D which is a bit simpler.
 
 
+<h3>Feynman Propagator</h3>
+In Euclidean space:
+<script>
+createInput(
+    `R4=Vector(R,4);
+k=AXIOM("k",R4);
+l=AXIOM("l",R4);
+propagor = Real.divide(1,Dot(R,4,k,k));
 
+//Divergent integral
+VolInt(R4,R,FUN(R4,k=>R.times(R.divide(1,Dot(R,4,sub(R4,k,l),sub(R4,k,l)) ),Real.divide(1,Dot(R,4,k,k)))));
+    
+    `)
+    </script>
 </div>
 </html>

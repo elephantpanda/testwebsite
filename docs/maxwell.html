@@ -1,0 +1,120 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+<div class="content">
+<h1>Maxwell's Equations of Electromagnetism</h1>
+Maxwell's Equations are written in terms of vector fields. 
+
+<h3>Coordinates and indices</h3>
+First we define the variables:
+<script>
+    createInput(
+`Z3 = Zmod(3);
+mu = AXIOM("\\mu",Z3);
+
+R3 = Vec(R,3);
+x = AXIOM("x",R3);
+t = AXIOM("t",R);
+
+SF = R3.to(R);  //scalar field type
+VF = Vec(SF,3);  //vector field type(a)
+VF2 = R3.to(R3); //vector field type (b)
+`.replaceAll("\\","\\\\"))
+</script>
+
+<h3>Fields</h3>
+We can represent the fields in various ways, for example as vectors of fields (E) or as fields of vectors (E') (or as a new vector-field type).
+<script>
+    createInput(
+`
+E2 = AXIOM("\\mathbf{E}",R.to(VF));
+H2 = AXIOM("\\mathbf{H}",R.to(VF));
+
+//alternatice definition:
+E = AXIOM("\\mathbf{\\tilde{E}}",R.to(VF2));
+H = AXIOM("\\mathbf{\\tilde{H}}",R.to(VF2));
+
+Vector.get(SF,3,E2(t),mu)(x);
+Vector.get(R,3,E(t)(x),mu);
+
+rho = AXIOM("\\rho",R.to(SF));
+J = AXIOM("\\mathbf{J}",R.to(Vec(SF,3)));
+
+Grad(R,3,rho(t))
+
+`.replaceAll("\\","\\\\"))</script>
+<br>
+We can define the energy as:
+<script>
+    createInput(`
+energy2 = VolInt(R3,R,plus(SF,Dot(SF,3, E2(t),E2(t)),Dot(SF,3, H2(t),H2(t))));
+energy = VolInt(R3,R,FUN(R3,x=>R.plus( Dot(R,3,E(t,x),E(t,x)), Dot(R,3,H(t,x),H(t,x)) )));
+`.replaceAll("\\","\\\\"))</script>
+
+<!---
+E = AXIOM("\\mathbf{E'}",R3.to(R3));
+H = AXIOM("\\mathbf{H'}",R3.to(R3));
+SF = R3.to(R);
+E2 = AXIOM("\\mathbf{E}",Vec(R.to(SF),3));
+H2 = AXIOM("\\mathbf{H}",Vec(R.to(SF),3));
+Vector.get(R.to(SF),3,E2,mu)(t,x);
+Vector.get(R,3,E(x),mu);
+
+energy2 =VolInt(R3,R, VolInt(R,SF, plus(R.to(SF),Dot(R.to(SF),3, E2,E2),Dot(R.to(SF),3, H2,H2))));
+-->
+
+<h3>Maxwell's equations</h3>
+
+<script>
+    createInput(
+`equals(SF, Div(3,E2(t)), rho(t));
+equals(SF, Div(3,H2(t)), Type.zero(SF));
+
+equals(VF, Curl(E2(t)), sub(VF,Type.zero(VF),DerivT(VF,H2)(t) )  );
+equals(VF, Curl(H2(t)), plus(VF,J(t) , DerivT(VF,E2)(t)  )  );
+`.replaceAll("\\","\\\\"))
+</script>
+
+
+<h3>Example</h3>
+Using a specific scalar field
+<script>
+createInput(
+    `
+rho = ALIAS("\\rho",FUN(R,t=>FUN(R3,x=> Sin(Vector.get(R,3,x,2))   )))
+`.replaceAll("\\","\\\\"))
+</script>
+<H3>4D Formalism</H3>
+Using the 4-vector potential. To do...
+
+<script>
+    createInput(
+`
+Z4 = Zmod(4);
+R4 = Vector(R,4);
+SF4 = R4.to(R);  //scalar field type
+VF4 = Vec(SF4,4);  //vector field type(a)
+nu=AXIOM("\\nu",Z4);
+sigma=AXIOM("\\sigma",Z4);
+A=AXIOM("A",VF4);
+Vector.get(SF4,4,A,nu);
+FF = sub(SF4 , PDeriv(R,4, nu,Vector.get(SF4,4,A,sigma) ) , PDeriv(R,4,sigma,Vector.get(SF4,4,A,nu) ));
+
+//Using exterior derivative:
+ExtDeriv = AXIOM("\\nabla_\\wedge",VF4.to( Tensor(SF4,4,2)    ) );
+ExtDeriv(A)
+`.replaceAll("\\","\\\\"))
+</script>
+
+$$\sqrt{1}$$
+</div>
+</html>

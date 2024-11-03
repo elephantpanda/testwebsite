@@ -18,14 +18,15 @@ We define the wave function is a complex valued function. It is paramaterised by
 
 <script>
     createInput(
-`psi = Var("\\psi", R.to(Vec(R,3).to(CR)));
-t = Var("t",R);
-x = Var("x",Vec(R,3));
+`R3=Vec(R,3);
+CF=R3.to(CR);
+psi = AXIOM("\\psi", R.to(CF));
+t = AXIOM("t",R);
+x = AXIOM("x",R3);
 psi(t)(x);
-psix = FUN(R,u=>psi(u)(x));
-DerivT(CR)(psix)(t);
-LaplacianT(CR)(3).apply(psi(t))(x);
-equals(CR, times(CR, CR.mk(0,1), DerivT(CR)(psix)(t)) ,  LaplacianT(CR)(3).apply(psi(t))(x))
+
+I=AXIOM("\\mathbf{i}",R3.to(CR));
+equals(CF, times(CF, I, DerivT(CF,psi)(t)) ,  LaplacianT(CR,3)(psi(t)))
 
 `.replaceAll("\\","\\\\"))
 </script>

@@ -19,15 +19,22 @@
 The basic implementation is inherently slow. Can it be sped up using machine arrays? (Also needs to be generalised to any metric spaces with metric \(g_{\mu\nu}\)? )
 <h2>Vectors</h2>
 A abstract n-dimensional vector is to be defined as a belonging to the space \(\mathbb{R}^n \).  (Should we also have vectors belonging to unspecified vector spaces? ) 
+We can either create an abstract vector of a particular type, or one representing specific values:
 
 <script>
-    createInput("U")
+    createInput(
+    `AXIOM("W",Vec(R,5));
+
+U = ALIAS("U",toVect([1.5,2.5,3],R));
+V = ALIAS("V",toVect([1.5,2.5,3],R));
+    `
+    )
 </script>
 
 We can get a component of the vector like this:
 
 <script>
-    createInput(`mu=Var("\\\\mu",Zmod(3));
+    createInput(`mu = AXIOM("\\\\mu",Zmod(3));
 Vector.get(Real,3,U);
 Vector.get(Real,3,U)(mu)`)
 </script>
@@ -37,8 +44,8 @@ which is equivalent to taking the dot product with unit vectors \( U . e_\mu \)
 The dot product is defined (over the reals) as:
 <script>
     createInput(
-`Dot(3, U,V);
-Dot.def(3, U,V)
+`Dot(R,3, U,V);
+Dot.def(R,3, U,V)
  `)
 </script>
 
@@ -53,7 +60,9 @@ Using match(?), Vector.append((n+1),value, vector(n)  )
 Or from a list:
 
 <script>
-    createInput(`Vector.fromList(Rat,LIST(1.5,2,3))`)
+    createInput(`P=ALIAS("P",Vector.fromList(Rat,3,LIST(1.5,2,3)));
+P.def
+    `)
 </script>
 <!---
 Then the vector with index is written as:
@@ -77,10 +86,29 @@ M = Vec.mk(T,1)(V2 ,Vec.mk(T,0)(V1, Vec.start(T) ))
 </script>
 
 <h3>Square Matrices</h3>
-Square matrices are elements of the group \(GL(\mathbb{F})\).
-
-<h3>Matrix products</h3>
+Square matrices are elements of the group \(GL(n,\mathbb{F})\).
+<script>
+    createInput(`
+GL2 = GL(2,Int);
+M = AXIOM(bold("M"),GL2);
+//W = ALIAS(bold("W"), GL.fromLists(2,Int , toList([toList([1,2],Int),toList([3,4],Int)],List(Int) )) );
+W = ALIAS(bold("W"), GL.fromVect(2,Int , toVect([toVect([1,2],Int),toVect([3,4],Int)],Vec(Int,2) )) );
+W.def;
+times(GL2,M,W);
+GL.get(2,Int,M)(1,0);
+    `)
+</script>
+<h3>Rectangular Matrices</h3>
 We should be able to do matrix products on vectors and other matrices.
+
+<script>
+    createInput(`
+Mmat = ALIAS(bold("M"),Matrix.mk(Nat,2,3,LIST(1,2,3,4,5,6) ));
+Nmat = ALIAS(bold("N"),Matrix.mk(Nat,3,4,LIST(1,2,3,4,5,6,7,8,9,10,11,12) ));
+MatMul(Nat,2,3,4,Mmat,Nmat);
+Transpose(Nat,2,3,Mmat)
+    `)
+</script>
 
 <h2>Lists</h2>
 <script>

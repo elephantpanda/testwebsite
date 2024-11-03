@@ -1,0 +1,21 @@
+All systems of inequalities in the reals can be reduced to:
+
+
+
+Exists(x in R^d |   A[n,m,o,p]x[n]x[m]x[o]x[p] = 0 , X[n]x[n] = 1 )
+
+equivalently
+Exists(x in PR^(d-1) | A[n,m,o,p]x[n]x[m]x[o]x[p] = 0  )
+
+equivalently
+  
+And(i=0..L)  B[i][n][m]x[n][m]=0  ,delta(n,m) X[n]x[m] = 1
+
+So           (B[i][n][m]+delta(n,m))x[n]x[m] = 1  
+
+ B'[0][n][m]=delta(n,m)
+ B[i] = B[i]-B[0]
+
+equivalently(?)
+B[i][n][m]x[n][m]=1?
+

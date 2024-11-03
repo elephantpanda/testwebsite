@@ -79,15 +79,23 @@ AXIOM("Socrates",human);
 AXIOM("isMortal",human.to(Prop));
 AXIOM("allHumansMortal", FORALL(human, h=>isMortal(h)));
 
-intro(human)(Socrates)(isMortal)(allHumansMortal)
+
+allHumansMortal(Socrates)
 `)
 </script>
-
+<!--//intro(human)(Socrates)(isMortal)(allHumansMortal)-->
 <h3>Exists</h3>
 To prove the statement that there exists something of a particular type. We just need to provide an example of it. Here we have a provide the value of 3 to the statement that there exists a natural number that equals 3.
 <script>
     createInput(
     `exists.mk(Nat, 3, FUN(Nat,x=>equals(Nat,x,3)) , rfl(Nat,3))
+    `)
+    </script>
+or to prove there exists someone who is mortal
+
+<script>
+    createInput(
+    `exists.mk(human, Socrates, isMortal , allHumansMortal(Socrates))
     `)
     </script>
 

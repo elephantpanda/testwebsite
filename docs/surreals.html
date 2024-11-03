@@ -1,0 +1,35 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Surreal Numbers</h1>
+Surreal numbers are a number system invented by Conway. (Needs definition of sets)
+<br>
+
+<br><br>
+Here we create some surreal numbers:
+
+<script>
+    createInput(`Sur.Zero=Sur.mk(Sur.empty,Sur.empty);
+Sur.MinusOne=Sur.mk(Sur.empty,Sur.Zero);
+Sur.One=Sur.mk(Sur.Zero, Sur.empty);
+Sur.Half = Sur.mk(Sur.Zero,Sur.One);
+Sur.ThreeQuaters = Sur.mk(Sur.Half,Sur.One)`)
+</script>
+
+<br>
+There's no simple way to convert a p-adic to a Real number. (Not all real numbers can be represented by p-adics and vice-versa). When it has an infinite leading repeated sequence of digits then it is equivalent to a rational number.
+
+
+</div>
+</html>

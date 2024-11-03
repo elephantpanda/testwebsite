@@ -12,19 +12,30 @@
 
 <div class="content">
 <h1>Dark Energy and Dark Matter</h1>
-<h2>Metric</h2>
+<h3>Setting up variables</h3>
 
-The moddified gravity lagrangian is
 
 <script>
     createInput(
-`
-g=Var("g",Real);
+`g=Var("g",Real);
 Lambda=Var("\\Lambda",Real);
 R=Var("R",Real);
 L=Var("\\mathscr{L}",Real);
 
 equals(Real, L , times(Real,Real.Sqrt(g), Real.Sqrt( plus(Real , power(Real, Lambda, 2) , power(Real, R,2)  )  ) ) )
+g=Var("g",Vec(Real,4).to(Real));
+Lambda=Var("\\Lambda",Real);
+RicciScalar = Var("R",Vec(Real,4).to(Real));
+`.replaceAll("\\","\\\\"))
+</script>
+<br>
+The moddified gravity lagrangian is
+
+<script>
+    createInput(
+`
+Lagrangian=Var("\\mathscr{L}",Real);
+equals(Real, Lagrangian ,VolInt(Vec(Real,4),Real, FUN(Vec(Real,4),x=> times(Real,Real.Sqrt(g(x)), Real.Sqrt( plus(Real , power(Real, Lambda, 2) , power(Real, RicciScalar(x) ,2)  )  ) )) ))
 
 `.replaceAll("\\","\\\\"))
 </script>

@@ -14,7 +14,10 @@
 <h1>Bugs and Tests</h1>
 Possible bugs: It is not clear what the type should be of a FORALL. It is set so that it is either Type or Prop depending on what it contains.
 
-
+<br>Type Bug<br>
+<script>createInput(`powerRuleT`)</script><br>
+<script>createInput(`iterProp`)</script><br>
+Simplifies wrong:
 <script>
     createInput(`
     FUN(Nat, x=>times(Nat,x,plus(Nat,x,x)) )
@@ -36,6 +39,7 @@ This takes a term A and a term B and finds a function f such that f(A)=B
 <br>Example:<br>
 <script>createInput(`complexMul(Nat)
 `)</script>
+
 
 <br>
 <script>
@@ -59,6 +63,12 @@ FORALL(Nat, T=>FUN(T, z=>z)) `)
     FUN(Type,T=>FUN(T, w=>plus(T,w)))
      `)
 </script>
+<script>
+    createInput(`
+    FUN(Type,T=>FUN(T,x=>FUN(T,y=>x)))
+     `)
+</script>
+
 
 </br>
 <script>

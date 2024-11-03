@@ -25,13 +25,13 @@ Summation:
 Product:
 
 <script>
-    createInput("prod(Rat, FUN(Nat, n=>Rat.fromNat(n) ),10)")
+    createInput("prod(Rat, FUN(Nat, n=>Rat.fromNat(S(n)) ),10)")
 </script>
 
 Iteration \(f^4(x) = f(f(f(f(x)))) = (fofofof)(x)\):
 
 <script>
-    createInput("iter(Rat, FUN(Rat, n=>Rat.plus(n,3) ),100,5)")
+    createInput("iter(Rat, FUN(Rat, n=>Rat.plus(n,3) ),5)(100)")
 </script>
 $$\sqrt{1}$$
 </div>

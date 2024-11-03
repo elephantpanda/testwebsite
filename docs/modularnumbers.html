@@ -35,6 +35,21 @@ b=Zmod.fromNat(7)(5+7);
 equals(Zmod(7),a,b)`)
 </script>
 
+
+
+Here is a definition for a prime checking function using GCD:
+<script>
+    createInput(`
+isPrime = 
+FUN( Nat, p=>Nat.equals(
+sum(Nat, FUN(Nat, n=>  Nat.gcd(  p ,  S(n)  )   ), Nat.sub(p,2)  )
+, Nat.sub(p,1) )
+) ;
+isPrime(11);
+select(string,"PRIME","COMPOSITE", isPrime(4))
+`)
+</script>
+
 $$\sqrt{1}$$
 </div>
 </html>

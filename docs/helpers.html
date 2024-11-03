@@ -32,7 +32,7 @@ f(10,20)
 You can specify whether all the variables A are abstracted or a subset.
 
 <br>Example:<br>
-<script>createInput(`f=defineVar("f",match(two,one));
+<script>createInput(`f=ALIAS("f",match(two,one));
 g=f(f(3));
 replaceUsingEquality(g,f.proof.type)`)</script>
 Equvalent to:
@@ -43,7 +43,7 @@ Equvalent to:
 <h2>Definitional Equality</h2>
 We compare types using definitional equality, which means that before comparing the types we replace all symbols by their definitions and apply all functions.
 
-<script>createInput(`eq2=defineVar("2 eq ",FUN(Nat,n=>equals(Nat,2,n)));
+<script>createInput(`eq2=ALIAS("2 eq ",FUN(Nat,n=>equals(Nat,2,n)));
 Prop.id(eq2.def(2),rfl(Nat,2));
 Prop.id(eq2(2),rfl(Nat,2));`)</script>
 

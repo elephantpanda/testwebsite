@@ -27,13 +27,19 @@ or we can drill down and use it's definition as follows:
 `)
 </script>
 
-<h2>Defining our own variables</h2>
-There are two ways to define variables. We can just create a free variable of a given type like this:
+<h3>Axioms</h3>
+Axioms are used to create variables of a given type, to create new types or new axiomatic propositions.<br>
+For example this creates a new variable, p, of the Prime type.
 <script>
    createInput(
-`Var("p",Prime)`)
+`AXIOM("p",Prime)`)
 </script>
-Generally, we should not be doing this! It can be useful for defining new types or axioms.
+Generally, we should not be doing this! It can be useful for defining new types or axioms. 
+For example we could add an axiom which says that all numbers are bigger than 3 which would clearly break all proofs:
+<script>
+    createInput(
+ `AXIOM("allNumbersBigger3",FORALL(Nat, x=>Nat.gt(x,3)))`)
+ </script>
 <br>
 <h3>Aliases</h3>
 We can create a new symbol which is basically an alias for another expression like so (Bug in type when simplified):
@@ -41,7 +47,7 @@ We can create a new symbol which is basically an alias for another expression li
 
 <script>
     createInput(
-`defineVar("cube", FUN(Type, T=>FUN(T, x=>power(T,x,3)  )  ) );
+`ALIAS("cube", FUN(Type, T=>FUN(T, x=>power(T,x,3)  )  ) );
 cube.def
 `)
 </script>

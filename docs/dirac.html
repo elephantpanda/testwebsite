@@ -18,20 +18,21 @@ We define the wave function is a complex valued function. It is paramaterised by
 
 <script>
     createInput(
-`mu = Var("\\mu",Zmod(4));
-nu = Var("\\nu",Zmod(4));
-alpha = Var("\\alpha",Zmod(4));
-var CScalar = Vec(R,4).to(CR) ;
-psi = Var("\\psi", Vec(CScalar,4));
-x = Var("x",Vec(R,4));
+`Z4 = Zmod(4);
+mu = AXIOM("\\mu",Z4);
+nu = AXIOM("\\nu",Z4);
+alpha = AXIOM("\\alpha",Z4);
+CScalar = Vec(R,4).to(CR) ;
+psi = AXIOM("\\psi", Vec(CScalar,4));
+x = AXIOM("x",Vec(R,4));
 Psi = Vector.get( CScalar, 4 , psi);
-m = Var("m",CScalar);
-gamma = Var("\\gamma", Vec(psi.type.to(psi.type),4));
-plus(CScalar, PDeriv(CR,4)(mu)(Psi(alpha)), times(CScalar, m, Psi(alpha)))(x);
+m = AXIOM("m",CScalar);
+gamma = AXIOM("\\gamma", Vec(psi.type.to(psi.type),4));
 
-Q=Vector.get(CScalar,4,Vector.get(psi.type.to(psi.type) , 4, gamma)(mu)(psi))(alpha);
+Q = FUN(Z4,k=>Vector.get(CScalar,4,Vector.get(psi.type.to(psi.type) , 4, gamma)(k)(psi))(alpha));
 
-plus(CScalar, PDeriv(CR,4)(nu)( Q), times(CScalar, m, Psi(alpha)))(x);
+
+equals(CR,plus(CScalar, sum(CScalar,FUN(Nat,n=> PDeriv(CR,4)( Zmod.fromNat(4,n)  )( Q(Zmod.fromNat(4,n)))) ,4 )  , times(CScalar, m, Psi(alpha)))(x),0);
 `.replaceAll("\\","\\\\"))
 </script>
 

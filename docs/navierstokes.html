@@ -12,28 +12,42 @@
 
 <div class="content">
 <h1>Navier Stokes</h1>
-<h2>Navier Strokes Equation</h2>
+<h2>Navier Stokes Equation</h2>
 
-We define the wave function is a complex valued function. It is paramaterised by a time variable and some particle data such as the coordinates of a particle, or several particles.
+The navier stokes equations represent fluid flow. They are 3+1 dimensional equations, where time is treated differently to space.
 
 <script>
     createInput(
-`mu = Var("\\mu",Zmod(3));
-density = Var("\\rho",Vec(R,3).to(R));
-pressure = Var("p", R.to(Vec(R,3).to(R)));
-u = Var("u", R.to(Vec(R,3).to(Vec(R,3)))); u.notation = t=>"u_{"+t+"}"
-t = Var("t",R);
-x = Var("x",Vec(R,3));
+`mu = AXIOM("\\mu",Zmod(3));
+R3=Vec(R,3);
+SF = R3.to(R);
+VF= Vector(SF,3);
+density = AXIOM("\\rho",SF);
+pressure = AXIOM("p", R.to(SF));
+u = AXIOM("u'", R.to(R3.to(R3))); u.notation = t=>"\\tilde{u}_{"+t+"}"
+u2= AXIOM("u", R.to(VF) );
+t = AXIOM("t",R);
+x = AXIOM("x",R3);
 u(t)(x);
+Vector.get(SF,3,u2(t),mu)(x);
 ux = FUN(R,w=>u(w)(x));
-DerivT(Vec(R,3))(ux)(t);
+DerivT(R3)(ux)(t);
+DerivT(VF,u2)(t);
 u(t);
-LaplacianT(Vec(R,3))(3).apply(u(t))(x);
-//equals(CR, times(CR, CR.mk(0,1), DerivT(CR)(psix)(t)) ,  LaplacianT(CR)(3).apply(psi(t))(x))
-PDeriv(Vec(R,3))(3)(mu)(u(t));
-GradT(Vec(R,3))(3)(u(t))(x);
-GradT(R)(3)(pressure(t))(x);
-Div(3).apply(density)
+`.replaceAll("\\","\\\\"))
+</script>
+<br>
+The equations are:
+<script>
+    createInput(
+`
+LaplacianT(R3,3)(u(t))(x);
+PDeriv(R3)(3)(mu)(u(t));
+GradT(R3)(3)(u(t))(x);
+GradT(R,3)(pressure(t))(x);
+
+
+Vector.scale(SF,3)
 `.replaceAll("\\","\\\\"))
 </script>
 

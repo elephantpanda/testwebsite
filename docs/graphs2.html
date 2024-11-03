@@ -12,13 +12,20 @@
 
 
 <div class="content">
-<h1>Supersymmetry</h1>
-This this is a field \( \mathbb{F}( \theta_1, \theta_2,...)/\langle \theta_i \theta_j = -\theta_j \theta_i \rangle \)
+<h1>Field Plots</h1>
+Plotting a vector graph
 
-<br>
-Would need a good way to simplify abritary numbers of grassmann variables.
+<h3>Vector Field</h3>
+<script>
+    createInput(
+`R2=Vec(R,2);
+GET=Vec.get(R,2);
+f=FUN(R2,x=>VECT( GET(x,1) , R.times(-1, GET(x,0)) ));
+vectorPlot(R,f,-5,5,-5,5)
+`)
+</script>
 
 
-$$\sqrt{1}$$
+$$\sqrt{\textcolor{red}{1}}$$
 </div>
 </html>

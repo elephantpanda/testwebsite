@@ -9,11 +9,25 @@
 
 </style>
 
+<!--
+Real = Completion(Rat)
+Real = Completion(Real)
+Completion(Complex(_x_)) = Complex(Completion(_x_))
+Completion(Quaternion(_x_)) = Quaternion(Completion(_x_))
+
+Completion: Type.to(Type)
+
+Limit(T, FUN(Nat,n=>[T]) ) : Completion(T)
+
+Completion.def = MATCH( [Rat,Real], [Real,Real],...)
+-->
 
 
 <div class="content">
 <h1>Real Numbers</h1>
 Real numbers are represented by a limiting series of rational numbers given by a function from the natural numbers to the rationals. A real number can have many series representations just like the rational numbers can. The series \(f(n)\) is such that it must satisfy: \( \forall_{t:\mathbb{N}} \exists_{n:\mathbb{N}} \forall_{m:\mathbb{N}} (m>n) \rightarrow |f(m)-f(n)|\lt\frac{1}{t}  \). We can add, multiply, subtract and divide reals by doing those operations on the Cauchy sequences (subject to some limitations.)
+<br>
+Note that reals are the "completion" of the rationals and the complex numbers are the "completion" of the complex rationals (using the standard metric).
 <br>
 Depending on our purposes, we can either work with the real numbers as symbols:
 <script>
@@ -52,7 +66,7 @@ To get an approximate rational value we can take the 100th term in the series:
 <script>
     createInput(`toCauchy(E.def)(100)`)
 </script>
-<h2>(Broken)</h2>
+<h2>Using derivatives</h2>
 <script>
     createInput(`deriv(FUN(Real, x=> x))(Real.fromRat.def(1));
     toCauchy(deriv(FUN(Real, x=>Real.times(x,x)))(Real.fromRat.def(1)))(100)
