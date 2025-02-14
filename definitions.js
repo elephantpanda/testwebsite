@@ -719,9 +719,9 @@ var Tan = AXIOM("tan", Real.to(Real)); Tan.notation = "\\tan";            Tan.fa
 var Exp = AXIOM("exp", Real.to(Real)); Exp.notation = x=>"e^{"+x+"}";     Exp.fastValue= Math.exp
 var Log = AXIOM("log", Real.to(Real)); Log.notation = "\\ln";             Log.fastValue= Math.log
 
-var Sinh = AXIOM("sinh", Real.to(Real)); Sinh.notation = "\\sinh";            Sin.fastValue= Math.sinh
-var Cosh = AXIOM("cosh", Real.to(Real)); Cosh.notation = "\\cosh";            Cos.fastValue= Math.cosh
-var Tanh = AXIOM("tanh", Real.to(Real)); Tanh.notation = "\\tanh";            Tan.fastValue= Math.tanh 
+var Sinh = AXIOM("sinh", Real.to(Real)); Sinh.notation = "\\sinh";            Sinh.fastValue= Math.sinh
+var Cosh = AXIOM("cosh", Real.to(Real)); Cosh.notation = "\\cosh";            Cosh.fastValue= Math.cosh
+var Tanh = AXIOM("tanh", Real.to(Real)); Tanh.notation = "\\tanh";            Tanh.fastValue= Math.tanh 
 
 var Erf = AXIOM("erf",R2R); Erf.fastValue = x=>myerf(x);
 var Gamma = AXIOM("\\Gamma",R2R); Gamma.fastValue = x=>mygamma(x);
