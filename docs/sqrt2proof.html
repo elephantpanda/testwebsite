@@ -1,0 +1,35 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" charset="utf-8"></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+</head>
+
+<link rel="stylesheet" type="text/css" href="doc.css">
+
+</style>
+
+
+
+<div class="content">
+<h1>Proof of Irrationality of Sqrt 2</h1>
+Attemp at a proof of square root of 2.
+
+<script>
+    createInput(`Real.Sqrt(2)`);
+    createInput(`Real.power(Real.Sqrt(2),2)`);
+</script>
+
+
+<script>
+    createInput(`ALIAS("isIrrational", FUN(Real,z=>FORALL(Rat, a=> not( Real.equals( z, Real.fromRat(a) ))) ));
+isIrrational.def`);
+</script>
+
+
+<script>
+    createInput(`isIrrational(Real.Sqrt(2))`);
+</script>
+
+</div>
+</html>

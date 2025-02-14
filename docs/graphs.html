@@ -43,10 +43,15 @@ Real.sub(Real.plus(Real.plus(power(Real,x,2),power(Real,y,2)),power(Real,z,2)),8
 
 
 
+<script>
+    createInput(
+ ` complexGraph(Compose(CR,CR.Cos,CR.Sin)) `)
+</script>
+
 //complexGraph(Compose(CR,CR.Cos,CR.Sin))
 //complexGraph(times(CR2CR,CR.Id,CR.Id)) //needs "imply" defined?
 //Mandelbrott:
-//complexGraph( z=> iter(CR, FUN(CR, x=> CR.plus(CR.times(x,x),z) ) , z , 10) )
+//complexGraph( z=> iter(CR, FUN(CR, x=> CR.plus(CR.times(x,x),z) ) , 10 ,z ) )
 
 $$\sqrt{\textcolor{red}{1}}$$
 </div>

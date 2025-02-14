@@ -64,12 +64,13 @@ or we can expand out the definitions:
 To get an approximate rational value we can take the 100th term in the series:
 
 <script>
-    createInput(`toCauchy(E.def)(100)`)
+    createInput(`toCauchy(E.def)(10)`)
 </script>
 <h2>Using derivatives</h2>
+(Breaks when we do cubic)
 <script>
-    createInput(`deriv(FUN(Real, x=> x))(Real.fromRat.def(1));
-    toCauchy(deriv(FUN(Real, x=>Real.times(x,x)))(Real.fromRat.def(1)))(100)
+    createInput(`Deriv(FUN(Real, x=> x))(Real.fromRat(1));
+toCauchy(Deriv(FUN(Real, x=>Real.times(x,x)))(Real.fromRat(1)))(100)
 `)
 </script>
 $$\sqrt{1}$$

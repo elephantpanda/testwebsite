@@ -18,16 +18,18 @@ Here we will do a simple example of a proof. Given two definitions of ONE and TW
 
 <script>
     createInput(
-`one=defineVar("ONE",succ(zero));
-two=defineVar("TWO",succ(one)) ;
-f = defineVar("f", FUN(Nat, x=> Nat.equals(two, succ(x))  ) );
-Subst(f.def,two.proof,one.proof) ;
-"Or we could write";
-subst(Nat)(one)(one.def)(f.def)(one.proof)(two.proof) ;
-Subst2(f.def, two, one);
-SubAll(two.proof, one)
+`ONE = ALIAS("ONE",succ(zero));
+TWO = ALIAS("TWO",succ(ONE)) ;
+f = ALIAS("f", FUN(Nat, x=> Nat.equals(TWO, succ(x))  ) );
+Subst(f.def,TWO.proof,ONE.proof) ;
+
 `)
 </script>
+<!---
+"Or we could write";
+subst(Nat)(ONE)(ONE.def)(f.def)(ONE.proof)(TWO.proof) ;
+Subst2(f.def, TWO, ONE);
+SubAll(TWO.proof, ONE)-->
 
 The proof is as follows. We create a function f such that f(a) matches one of our previous proofs. Then we combine that we a proof of a=b. And we get the proof f(b). This is another way of saying we are making a subtitution of b with a in the proof f(a). The function f just tells us where we are doing the substitution.
 
@@ -39,11 +41,11 @@ A longer proof:
 
 <script>
         createInput(
-`one=defineVar("ONE",succ(zero));
-two=defineVar("TWO",succ(one)) ;
-three=defineVar("THREE",succ(two));
-var g= FUN(Nat, x=>Nat.equals(three,succ(x))  );
-var f= FUN(Nat, x=>Nat.equals(two, succ(x))  );
+`one=ALIAS("ONE",succ(zero));
+two=ALIAS("TWO",succ(one)) ;
+three=ALIAS("THREE",succ(two));
+g= FUN(Nat, x=>Nat.equals(three,succ(x))  );
+f= FUN(Nat, x=>Nat.equals(two, succ(x))  );
 two2=Subst(f,two.proof,one.proof) ; 
 Subst(g,three.proof,two2) ;  `) 
 
@@ -76,8 +78,8 @@ Let us prove Socrates is mortal. This is proved using the intro function which t
 createInput(
 `AXIOM("human",Type);
 AXIOM("Socrates",human);
-AXIOM("isMortal",human.to(Prop));
-AXIOM("allHumansMortal", FORALL(human, h=>isMortal(h)));
+AXIOM("isMortal",FORALL(Type, t=>t.to(Prop)));
+AXIOM("allHumansMortal", FORALL(human, h=>isMortal(human,h)));
 
 
 allHumansMortal(Socrates)
@@ -95,7 +97,7 @@ or to prove there exists someone who is mortal
 
 <script>
     createInput(
-    `exists.mk(human, Socrates, isMortal , allHumansMortal(Socrates))
+    `exists.mk(human, Socrates, isMortal(human) , allHumansMortal(Socrates)).type
     `)
     </script>
 

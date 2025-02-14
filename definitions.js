@@ -94,6 +94,10 @@ Int.zero = IntMk(0,0)
 Int.one = IntMk(1,0)
 Int.minusOne = IntMk(0,1)
 
+function INT(x){
+    if(x>0) return Int.mk(x,0);
+    else return Int.mk(0,-x);
+}
 
 
 
@@ -131,27 +135,27 @@ Octonion.mk.notation = type=>re=>e1=>e2=>e3=>e4=>e5=>e6=>e7=>"("+re+"+"+e1+QE(1)
 
 
 var Rat = Rational = AXIOM("ℚ",Type) ;Rat.fastValue="Q"; Rat.notation = blue("ℚ")
-var RatMk =Rat.mk = RationalMk = AXIOM("ℚ.mk", Int.to(Int.to(Rational)))  ; Rat.mk.fastValue = x=>y=>Number(x)/Number(y);
+var RAT = Rat.mk = AXIOM("ℚ.mk", Int.to(Int.to(Rational)))  ; Rat.mk.fastValue = x=>y=>Number(x)/Number(y);
 
 var RatReduce=AXIOM("RatReduce", Rat.to(Rat)  )
 
 
 
-Rat.one =  RationalMk(1,1)
-Rat.zero = RationalMk(0,1)
+Rat.one =  Rat.mk(1,1)
+Rat.zero = Rat.mk(0,1)
 
 Rat.fromInt = FUN(Int,x=>Rat.mk(x,1))
 Rat.fromNat = FUN(Nat,n=>Rat.mk(Int.mk(n,0),1))
 
 var PosRat= AXIOM(blue("ℚ^{+}"),Type) 
 var PosRatMk = PosRat.mk = PosRatMk = AXIOM("/", Nat.to(Nat.to(PosRat)))
-PosRat.one =  RationalMk(1,1)
-PosRat.zero = RationalMk(0,1)
+PosRat.one =  Rat.mk(1,1)
+PosRat.zero = Rat.mk(0,1)
 
 //ComplexMk(Real)( Real.zero , Pi  )
 
 
-//var RationalMk = AXIOM("/", Int.to(Nat.to(Rational)))
+//var Rat.mk = AXIOM("/", Int.to(Nat.to(Rational)))
 Rat.mk.notation = x=>y=>{
     if(y==1) return SHOW_NUMBER_TYPES?x+subscript(blue("ℚ")):x;
     else return "\\frac{"+x+"}{"+y+"}"
@@ -199,9 +203,9 @@ function getName(x){
 
 // rule = F:N->P  <=> forall (F): ForAll (N->p) //forall: Nat->Prop->ForAll (N->Prop)???
 var complex3_4 = ComplexMk(Nat,3,4)
-var rational2_3 = RationalMk(2,3)
+var rational2_3 = Rat.mk(2,3)
 var quaternion1234 = QuaternionMk(Int,1,2,3,4)
-var quaternionRat = QuaternionMk(Rational,RationalMk(2,3),RationalMk(1,3),RationalMk(4,5),RationalMk(6,7))
+var quaternionRat = QuaternionMk(Rational,Rat.mk(2,3),Rat.mk(1,3),Rat.mk(4,5),Rat.mk(6,7))
 var complexQuat = QuaternionMk(Complex(Nat),ComplexMk(Nat,2,3) ,ComplexMk(Nat,2,3),ComplexMk(Nat,2,3),ComplexMk(Nat,2,3) )
 var sqrt_2 = SqrtMk(two)
 var one_two = new P(one,two)
@@ -258,8 +262,8 @@ Real.mk = AXIOM("R.mk", Nat.to(Rational).to(Real) ) /*plus proof of convergence?
 Real.mk.notation = (x,y)=>{  
     //---need to only return [A] value if is is wholy numeric without any variables
     /*if(y && y.kind=="fun"){
-        //(A A RationalMk 1 3)
-        if(y.second.kind=="applied" && y.second.first.kind=="applied" &&  y.second.first.first.symbol==RationalMk.symbol){
+        //(A A Rat.mk 1 3)
+        if(y.second.kind=="applied" && y.second.first.kind=="applied" &&  y.second.first.first.symbol==Rat.mk.symbol){
             return "("+y.second+")"+subscript("ℝ")
         }
         return "["+y.second.type+" "+y.second.first.type+" "+y.second.first.first.symbol+"]"
@@ -440,6 +444,17 @@ LNext.openNotation = type=>x=>(rest,y)=>x+","+y.openNotation
 LNext.notation = type=>x=>rest=>  "\\{"+x+","+rest+"\\}"
 //LNext.notation = type=>(x,z)=>(rest,y)=> "\\left(" + x + "," + y.first.kind+"\\right)" 
 
+//-----if it is the wrong type at that position it must return MixedList.Fail or something
+var MixedList = AXIOM("MixedList",Type)
+var MLNext = AXIOM("MConcat", FORALL(Type,T=>T.to(MixedList.to(MixedList) ) )   )
+var MLGet = AXIOM("MLGet",FORALL(Type, T=>Nat.to(T))  ) 
+
+//The any type
+var Any = AXIOM("Any",Type); Any.notation="\\ast ";
+Any.mk = AXIOM("Any.mk", FORALL(Type, T=>T.to(Any))) ; Any.mk.notation = T=>"{\\ast}_{"+T+"}"
+Any.get = AXIOM("Any.get", FORALL(Type, T=>Any.to(T) ))
+var AnygetProp = AXIOM("AnygetProp", FORALL(Type, T=>FORALL(T, x=>equals(T, Any.get(T,Any.mk(T,x)),x  )   )))
+
 function matchFunc(A,F,args){
     for(var i=0;i<args.length;i++){
         if(!F.first) return false;
@@ -470,6 +485,17 @@ LNext.notation = type=>x=>(rest,y)=>{
 
 
 List.fromFunc = AXIOM("LfromF",FORALL(Type, T=>Nat.to(T).to(Nat.to(List(T)) )))  //List.fromFunc(Real, 3, FUN(Nat, x=>Real))
+List.fromFunc.notation = T=>(f,y)=>n=>{
+
+    // n=>n^2   = "    { n^2 | n=0...a } //  
+
+    if(y && y.kind=="fun"){
+        var vari=new C(getNewVariName(),y.vari.type)
+        return "\\left\\{"+y.appliedTo(vari)+"\\middle|"+vari+"=0.."+n+"\\right\\}"
+    }else
+
+    return "\\left\\{"+f+"\\right\\}_{0.."+n+"}"
+}
 
 var listFromFunc1 =   FORALL(Type, T=>FORALL(Nat, N=>FORALL(Nat.to(T),F=>equals(List(T),  List.fromFunc(T, F,succ(N)  ),   LNext(T, F(N) ,  List.fromFunc(T,F,N)  ) ) )))
 var listFromFunc0 =   FORALL(Type, T=>FORALL(Nat.to(T),F=>equals( List(T),  List.fromFunc(T, F,Nat.zero  ),   LEnd(T ) ) ))
@@ -496,7 +522,7 @@ var sum= AXIOM("sum", FORALL(Type, T=>Nat.to(T).to(Nat.to(T))) ) //sum(F, a) = f
 sum.notation = type=>(F,y)=>n=>{
     if(y && y.kind=="fun"){
         var vari=new C(getNewVariName(),y.vari.type)
-        return "\\sum\\limits_{"+vari+"=0}^{"+n+"} \\left\\{" + fill(y.appliedTo(vari).toString()) +"\\right\\}" 
+        return "\\sum\\limits_{"+vari+"=0}^{"+n+"} \\left(" + fill(y.appliedTo(vari).toString()) +"\\right)" 
     }else
     return "\\sum\\limits_{0}^{"+n+"}"+F
 }
@@ -585,7 +611,7 @@ var makeList0 = AXIOM("MakeList0", FORALL(Type, T=>FORALL( Nat.to(T), F=>
 // ----------------REALS--------------------
 /*
 var Pi = AXIOM("\\pi", Real)
-Pi.def = R.mk( FUN(Nat, n=> sum(Rational,FUN(Nat, k=>RationalMk(8,Nat.times(Nat.plus(Nat.times(4,k),1),Nat.plus(Nat.times(4,k),3))) )  ,n   )  ))
+Pi.def = R.mk( FUN(Nat, n=> sum(Rational,FUN(Nat, k=>Rat.mk(8,Nat.times(Nat.plus(Nat.times(4,k),1),Nat.plus(Nat.times(4,k),3))) )  ,n   )  ))
 Pi.prop = AXIOM("PiDef", equals(Real, Pi, PiSeries))
 */
 /*var Pi = ALIAS("pi",
@@ -693,6 +719,10 @@ var Tan = AXIOM("tan", Real.to(Real)); Tan.notation = "\\tan";            Tan.fa
 var Exp = AXIOM("exp", Real.to(Real)); Exp.notation = x=>"e^{"+x+"}";     Exp.fastValue= Math.exp
 var Log = AXIOM("log", Real.to(Real)); Log.notation = "\\ln";             Log.fastValue= Math.log
 
+var Sinh = AXIOM("sinh", Real.to(Real)); Sinh.notation = "\\sinh";            Sin.fastValue= Math.sinh
+var Cosh = AXIOM("cosh", Real.to(Real)); Cosh.notation = "\\cosh";            Cos.fastValue= Math.cosh
+var Tanh = AXIOM("tanh", Real.to(Real)); Tanh.notation = "\\tanh";            Tan.fastValue= Math.tanh 
+
 var Erf = AXIOM("erf",R2R); Erf.fastValue = x=>myerf(x);
 var Gamma = AXIOM("\\Gamma",R2R); Gamma.fastValue = x=>mygamma(x);
 
@@ -735,7 +765,7 @@ toCauchy.fastValue = (x,y)=>n=>{
 var realSeriesProp = sorry(FORALL(Nat.to(Rational), F=> equals(Nat.to(Rational)  ,toCauchy( R.mk(F)   )   , F  )   ))
 
 Real.Add = FUN(Real, x=>FUN(Real, y=>   R.mk( FUN(Nat,n=> plus(Rational, toCauchy(x)(n) ,  toCauchy(y)(n)  ) )   )))
-Real.Exp = ALIAS("Real.Exp",FUN( Real, x=> R.mk(FUN(Nat, n=> divide(Rational, power(Rational, plus(Rational, RationalMk(IntMk(n,0),1),  toCauchy(x)(n)    ),n ), RationalMk( IntMk(Nat.power(n,n),0) ,1)   ) ))    ))
+Real.Exp = ALIAS("Real.Exp",FUN( Real, x=> R.mk(FUN(Nat, n=> divide(Rational, power(Rational, plus(Rational, Rat.mk(IntMk(n,0),1),  toCauchy(x)(n)    ),n ), Rat.mk( IntMk(Nat.power(n,n),0) ,1)   ) ))    ))
 Real.Exp.notation = x=>"e^{"+x+"}"
 Real.Exp.fastValue = x=>Math.exp(x)
 Real.Sqrt = AXIOM("real.sqrt", Real.to(Real)); Real.Sqrt.notation = x=>"\\sqrt{"+x+"}"; Real.Sqrt.fastValue = Math.sqrt
@@ -772,14 +802,14 @@ Comp3.notation = t=>u=>v=>x=>y=>"("+fill(x)+"∘"+fill(y)+")"
 var deriv = FUN(Real.to(Real), F=>FUN(Real, x=> R.mk( FUN(Nat, n=>
         Rat.divide( 
             Rat.sub( 
-                toCauchy( F( R.mk( FUN(Nat, m=>Rat.plus( toCauchy(x)(m), RationalMk(1,Int.mk(n,0)) ) ) )))(n) , 
+                toCauchy( F( R.mk( FUN(Nat, m=>Rat.plus( toCauchy(x)(m), Rat.mk(1,Int.mk(n,0)) ) ) )))(n) , 
                 toCauchy( F(x) )(n)  
             ),  
-         RationalMk(1,Int.mk(n,0)) )
+         Rat.mk(1,Int.mk(n,0)) )
     ))))
 
 var deriv2 = FUN(Real.to(Real), F=>FUN(Real, x=> 
-    Real.times( Real.sub( F( Real.plus( x , R.mk(FUN(Nat,n=>RationalMk(Int.one,Int.mk(n,0))  )) )  ), F(x) ), R.mk(FUN(Nat,n=>RationalMk(Int.mk(n,0),1)))
+    Real.times( Real.sub( F( Real.plus( x , R.mk(FUN(Nat,n=>Rat.mk(Int.one,Int.mk(n,0))  )) )  ), F(x) ), R.mk(FUN(Nat,n=>Rat.mk(Int.mk(n,0),1)))
 )))
 
 var integrate2 = FUN(Real.to(Real), F=>FUN(Real, x=> 
@@ -813,7 +843,7 @@ Integral.notation = (x,y)=>z=>
 var Deriv = ALIAS("Deriv", deriv);
 
 //var Deriv = AXIOM("Deriv", R2R.to(R2R))
-Deriv.notation = (x,y)=>//z=>
+Deriv.notation = (x,y)=>z=>
     {
 
         if (y && y.kind=="fun"){
@@ -821,7 +851,7 @@ Deriv.notation = (x,y)=>//z=>
             return "\\frac{\\partial "+fill(y.appliedTo(vari).toString())+"}{\\partial "+vari+"}|_{"+vari+"="+fill(z.toString())+"}" 
         }else{
             var v = getNewVariName() 
-            return "D\\left["+fill(x)+"\\right]"
+            return "D\\left["+fill(x)+"\\right]" + noblank(z)
             //return "\\frac{\\partial}{\\partial "+v+"}"+fill(x)+"("+v+")|_{"+v+"="+z+"}" 
             //return "\\frac{\\partial "+fill(x)+"("+v+")}{\\partial "+v+"}|_{"+v+"="+z+"}" 
             //return "\\partial" + x;
@@ -833,7 +863,7 @@ Deriv.fastValue = f=>x=>{
 }
 
 var DerivT = AXIOM("DerivT",FORALL(Type, T=>Real.to(T).to(Real.to(T))))
-DerivT.notation = t=>(x,y)=>//z=>
+DerivT.notation = t=>(x,y)=>z=>
 {
     if (y && y.kind=="fun"){
         var vari=new C(getNewVariName(),y.first)
@@ -841,7 +871,7 @@ DerivT.notation = t=>(x,y)=>//z=>
     }else{
         var v = getNewVariName() 
         //if(y.kind=="atom") return "\\dot{"+fill(x)+"}"
-        return "D\\left["+fill(x)+"\\right]"
+        return "D\\left["+fill(x)+"\\right]" + noblank(z)
     }
 }
 
@@ -882,11 +912,11 @@ var integral = FUN(Real.to(Real), F=>FUN(Real, x=> R.mk( FUN(Nat, n=>
             FUN(Nat, i=> Rat.times
               ( 
                 toCauchy(x)(n),
-                toCauchy(    F(  R.mk(  FUN( Nat, m=> Rat.times ( toCauchy(x)(m) , RatMk(Int.mk(i,0),Int.mk(n,0)) )  ))  )    )(n)       
+                toCauchy(    F(  R.mk(  FUN( Nat, m=> Rat.times ( toCauchy(x)(m) , Rat.mk(Int.mk(i,0),Int.mk(n,0)) )  ))  )    )(n)       
               )  
             )  
         ,n),  
-     RationalMk(1,Int.mk(n,0)) ) ///* x
+     Rat.mk(1,Int.mk(n,0)) ) ///* x
 ))))
 
 //---------------Calculus of Variations (equivalent to continuous partial derivatives)
@@ -969,11 +999,34 @@ Proj.get.notation = t=>dim=>vect=>index =>"{"+vect+"}"+subscript(index);
 var Matrix = AXIOM("Matrix", Type.to(Nat.to(Nat.to(Type))))
 Matrix.notation = t=>dim1=>dim2=> t+"^{"+dim1+"\\times "+dim2 +"}"
 
-Matrix.mk = AXIOM("Matrix.mk", FORALL(Type, T=>FORALL(Nat, dim1=> FORALL(Nat, dim2=> List(T).to(Matrix(T,dim1,dim2))   ))  )   )
+Matrix.mk = AXIOM("Matrix.mk", FORALL(Type, T=>FORALL(Nat, dim1=> FORALL(Nat, dim2=> List(List(T)).to(Matrix(T,dim1,dim2))   ))  )   )
+Matrix.mk.notation = T=>dim1=>dim2=>L =>L;
 
-var MatMul = AXIOM("matmul",FORALL(Type,T=>FORALL(Nat,a=>FORALL(Nat,b=>FORALL(Nat,c=>Matrix(T,a,b).to(Matrix(T,b,c).to(Matrix(T,a,c))) ) ))))  
+Matrix.mk.fastValue = T=>dim1=>dim2=>L=>L;
+
+
+
+
+
+Matrix.get = AXIOM("Matrix.get", FORALL(Type, T=>FORALL(Nat,dim1=>FORALL(Nat,dim2=>Nat.to(Nat.to( Matrix(T,dim1,dim2).to( T)))) )));
+ Matrix.get.notation = T=>dim1=>dim2=>x=>y=>M=>"{"+M+"}_{"+x+","+y+"}"
+ Matrix.get.fastValue =  T=>dim1=>dim2=>x=>y=>M=>M[y+dim2*x]; //<--should we have to do this?
+
+//var MatMul = AXIOM("matmul",FORALL(Type,T=>FORALL(Nat,a=>FORALL(Nat,b=>FORALL(Nat,c=>Matrix(T,a,b).to(Matrix(T,b,c).to(Matrix(T,a,c))) ) ))))  
+var MatMul = ALIAS("MatMul",
+    FUN(Type,T=>
+        FUN(Nat,dim1=>FUN(Nat,dim2=>FUN(Nat,dim3=>
+            FUN(Matrix(T,dim1,dim2), Mmat=> FUN(Matrix(T,dim2,dim3),Nmat=>
+        Matrix.mk(T,dim1,dim3,
+            List.fromFunc( List(T), FUN(Nat, b=>
+                List.fromFunc( T, FUN(Nat, a=>
+                    sum(T,FUN(Nat, n=>times(T,Matrix.get(T,dim1,dim2,b,n,Mmat),Matrix.get(T,dim2,dim3,n,a,Nmat)))
+                ,Nat.sub(dim2,1))), Nat.sub(dim3,1))),Nat.sub(dim1,1))
+        )
+    ))))))
+)
+
 MatMul.notation = t=>a=>b=>c=>M1=>M2=>M1+"\\cdot "+M2;
-
 var Transpose = AXIOM("Transpose", FORALL(Type, T=>FORALL(Nat, a=>FORALL(Nat, b=> Matrix(T,a,b).to(Matrix(T,b,a)) ))));
 Transpose.notation = t=>a=>b=>M=>"{"+M+"}^{T}"
 
@@ -1274,10 +1327,16 @@ function TIMES(x,y){
     var T=X.type;
     return times(T,X,y)
 }
-function PLUS(x,y){
+function PLUS(...args){
+    var X=evalObject(args[0]);
+    var T=X.type;
+    console.log()
+    return plus(T).apply(...args)
+}
+function SUB(x,y){
     var X=evalObject(x);
     var T=X.type;
-    return plus(T,X,y)
+    return sub(T,X,y)
 }
 
 //----------------------------COMPLEX RULES-----------------------
@@ -1354,25 +1413,25 @@ var complexFProof = AXIOM("complexFProof",FORALL(Type, F=>FORALL(Complex(F), x=>
 
 var complexARule = FUN(Type, F=>FUN(Complex(F), x=> FUN(Complex(F), y=>new Rule( plus(Complex(F),x,y)    , complexAdd(F,x,y)  ))))
 
-//var rationalTimesRule = FUN(Rational, x=>FUN(Rational, y=>new Rule(  times(Rational, x,y)  , RationalMk( times(Rational,RatNum(x),RatNum(y)  )    ,  times(Rational,RatDen(x),RatDen(y)  )    )         ) ))
+//var rationalTimesRule = FUN(Rational, x=>FUN(Rational, y=>new Rule(  times(Rational, x,y)  , Rat.mk( times(Rational,RatNum(x),RatNum(y)  )    ,  times(Rational,RatDen(x),RatDen(y)  )    )         ) ))
 var rationalTimesProof = AXIOM("rationalTimesProof",FORALL(Int, a=>FORALL(Int, b=>FORALL(Int, c=>FORALL(Int, d=>
-equals(Rational, times(Rational, RationalMk(a,b) ,  RationalMk(c,d) ) ,   RationalMk( Int.times(a,c)    , Int.times(b,d)   )  ) )))))
+equals(Rational, times(Rational, Rat.mk(a,b) ,  Rat.mk(c,d) ) ,   Rat.mk( Int.times(a,c)    , Int.times(b,d)   )  ) )))))
 
 var rationalDivideProof = AXIOM("rationalDivideProof",FORALL(Int, a=>FORALL(Int, b=>FORALL(Int, c=>FORALL(Int, d=>
-    equals(Rational, divide(Rational, RationalMk(a,b) ,  RationalMk(c,d) ) ,   RationalMk( Int.times(a,d)    , Int.times(b,c)   )  ) )))))
+    equals(Rational, divide(Rational, Rat.mk(a,b) ,  Rat.mk(c,d) ) ,   Rat.mk( Int.times(a,d)    , Int.times(b,c)   )  ) )))))
     
 
 var rationalIntAddRule = FUN(Int, a=>FUN(Int, c=>
-    new Rule( plus(Rational, RationalMk(a,1) ,  RationalMk(c,1) ) ,   RationalMk(Int.plus(a,c)    , 1  )  ) ))
+    new Rule( plus(Rational, Rat.mk(a,1) ,  Rat.mk(c,1) ) ,   Rat.mk(Int.plus(a,c)    , 1  )  ) ))
 
 var rationalAddRule = FUN(Int, a=>FUN(Int, b=>FUN(Int, c=>FUN(Int, d=>
-new Rule( plus(Rational, RationalMk(a,b) ,  RationalMk(c,d) ) ,   RationalMk(Int.plus(Int.times(a,d), Int.times(b,c))    , Int.times(b,d)   )  ) ))))
+new Rule( plus(Rational, Rat.mk(a,b) ,  Rat.mk(c,d) ) ,   Rat.mk(Int.plus(Int.times(a,d), Int.times(b,c))    , Int.times(b,d)   )  ) ))))
 
 var rationalSubRule = FUN(Int, a=>FUN(Int, b=>FUN(Int, c=>FUN(Int, d=>
-new Rule( sub(Rational, RationalMk(a,b) ,  RationalMk(c,d) ) ,   RationalMk( Int.sub(Int.times(a,d), Int.times(b,c))    , Int.times(b,d)   )  ) ))))
+new Rule( sub(Rational, Rat.mk(a,b) ,  Rat.mk(c,d) ) ,   Rat.mk( Int.sub(Int.times(a,d), Int.times(b,c))    , Int.times(b,d)   )  ) ))))
 
 var rationalPowerProof = sorry(FORALL(Int, a=>FORALL(Int, b=>FORALL(Nat, n=>
-    equals(Rational, power(Rational, RationalMk(a,b) ,  n ) ,   RationalMk(Int.power(a,n)   , Int.power(b,n)    )  ) ))))
+    equals(Rational, power(Rational, Rat.mk(a,b) ,  n ) ,   Rat.mk(Int.power(a,n)   , Int.power(b,n)    )  ) ))))
     
 
 
@@ -1524,7 +1583,7 @@ function log(n,x){
 
 /*
 var B0 = times(Complex(Nat), ComplexMk(Nat,two,two) , ComplexMk(Nat,one,three)  )
-B0 = times(Complex(Rational), ComplexMk(Rational,RationalMk(1,3),RationalMk(2,3)) , ComplexMk(Rational,RationalMk(1,2),RationalMk(1,5))  )
+B0 = times(Complex(Rational), ComplexMk(Rational,Rat.mk(1,3),Rat.mk(2,3)) , ComplexMk(Rational,Rat.mk(1,2),Rat.mk(1,5))  )
 //B0 = times(Complex(CNat), ComplexMk(CNat,ComplexMk(Nat,1,3),ComplexMk(Nat,2,3)) , ComplexMk(CNat,ComplexMk(Nat,1,2),ComplexMk(Nat,1,5))  )
 
 
@@ -1717,9 +1776,12 @@ Type.sum =  AXIOM("typeSum",Type.to(Type.to(Type)));    Type.sum.notation = x=>y
 Type.left  =  AXIOM("left", FORALL(Type, A=>FORALL(Type, B =>A.to(Type.sum(A)(B)))))
 Prop.left  =  AXIOM("leftOr",FORALL(Prop, A=>FORALL(Prop, B =>A.to(Prop.or(A)(B))) )); Prop.left.notation = A=>B=>C=>"("+C+")"+subscript(A+"\\rightarrow"+"("+A+"∨"+B+")" )
 Type.right =  AXIOM("right", FORALL(Type, A=>FORALL(Type, B =>B.to(Type.sum(A)(B)))))
-Prop.right =  AXIOM("rightOr",FORALL(Prop, A=>FORALL(Prop, B =>B.to(Prop.or(A)(B))) ))
+Prop.right =  AXIOM("rightOr",FORALL(Prop, A=>FORALL(Prop, B =>B.to(Prop.or(A)(B))) )); Prop.right.notation = A=>B=>C=>"("+C+")"+subscript(B+"\\rightarrow"+"("+A+"∨"+B+")" )
 
-Prop.not = AXIOM("not",Prop.to(Prop)); Prop.not.notation = x=> "¬("+x+")"; Prop.not.fastValue = x=>!x;
+Prop.not = ALIAS("not" ,FUN(Prop, x=>x.to(False)) ); Prop.not.notation = x=> "¬("+x+")"; Prop.not.fastValue = x=>!x;
+//AXIOM("not",Prop.to(Prop)); 
+
+
 
 //------------------------AND------------------------
 
@@ -1728,6 +1790,9 @@ Type.prod = AXIOM("prodType",Type.to(Type.to(Type))); Type.prod.notation  = x=>y
 
 //(pairs) (What is pair of propositions called?)
 Prop.pair= AXIOM("propPair", FORALL(Prop,A=>FORALL(Prop,B=>A.to(B.to(Prop.and(A,B)))))); Prop.pair.notation = a=>b=>x=>y=> "("+x+","+y+")"
+//Prop.First
+//Prop.Second
+
 Type.pair = AXIOM("prodMk", FORALL(Type,A=>FORALL(Type,B=>A.to(B.to(Type.prod(A,B)))))); Type.pair.notation = a=>b=>x=>y=> "("+x+","+y+")"//+subscript(a+"×"+b)
 Type.First  =AXIOM("first",   FORALL(Type,A=>FORALL(Type,B=>Type.prod(A)(B).to(A))));      Type.First.notation = a=>b=>x=>"{"+x+"}"+subscript("L")
 Type.Second =AXIOM("second",  FORALL(Type,A=>FORALL(Type,B=>Type.prod(A)(B).to(B)) ));     Type.Second.notation = a=>b=>x=>"{"+x+"}"+subscript("R")

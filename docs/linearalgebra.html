@@ -75,7 +75,7 @@ W(2)`)
 --->
 <h2>Matrices</h2>
 Matrices can be thought of as vectors of vectors. It could be a vector of <i>n</i> rank <i>m</i> vectors to create an \(n\times m\) matrix.
-
+<!---
 <script>
     createInput(
 `V1 = VecT.mk(Nat,1)(7,VecT.mk(Nat,0)(4, VecT.start(Nat) ) );
@@ -84,7 +84,7 @@ T = V1.type
 M = Vec.mk(T,1)(V2 ,Vec.mk(T,0)(V1, Vec.start(T) ))
 `)
 </script>
-
+--->
 <h3>Square Matrices</h3>
 Square matrices are elements of the group \(GL(n,\mathbb{F})\).
 <script>
@@ -103,13 +103,21 @@ We should be able to do matrix products on vectors and other matrices.
 
 <script>
     createInput(`
-Mmat = ALIAS(bold("M"),Matrix.mk(Nat,2,3,LIST(1,2,3,4,5,6) ));
-Nmat = ALIAS(bold("N"),Matrix.mk(Nat,3,4,LIST(1,2,3,4,5,6,7,8,9,10,11,12) ));
+Mmat = ALIAS(bold("M"),Matrix.mk(Nat,2,3,LIST(LIST(1,2,3),LIST(4,5,6)) ));
+Nmat = ALIAS(bold("N"),Matrix.mk(Nat,3,4,LIST(LIST(1,2,3,4),LIST(5,6,7,8),LIST(9,10,11,12)) ));
+Nmat.def;
 MatMul(Nat,2,3,4,Mmat,Nmat);
-Transpose(Nat,2,3,Mmat)
+Transpose(Nat,2,3,Mmat);
+Matrix.get(Nat,2,3,0,1,Mmat) 
     `)
 </script>
 
+<h2>Matrix Multiplication Definition</h2>
+<script>
+    createInput(`
+MatMul(Nat,2,3,4,Mmat,Nmat)
+`)
+</script>
 <h2>Lists</h2>
 <script>
     createInput("LNext(Nat)(3 , LNext(Nat)(7, LEnd(Nat) )) ")
@@ -122,7 +130,7 @@ We can also enter list like this:
 Make list from a function:
 
 <script>
-    createInput(`List.fromFunc(Nat,FUN(Nat,x=>x),3)`)
+    createInput(`List.fromFunc(Nat,FUN(Nat,x=>Nat.times(x,x)),3)`)
 </script>
 
 

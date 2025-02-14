@@ -78,6 +78,15 @@ RicciScalar = TraceT(t)(4)(Ricci)
 `.replaceAll("\\","\\\\"))
 </script>
 
+<h3>Geodesic Equation</h3>
+
+<script>
+    createInput(
+`X=AXIOM("x", Real.to(R4));
+t0 = AXIOM("t",R);
+DerivT(R4,DerivT(R4,X));
+Vector.get(R,4,DerivT(R4,X)(t0),mu)
+`.replaceAll("\\","\\\\"))
 
 <h3>Alternative Formulations</h3>
 

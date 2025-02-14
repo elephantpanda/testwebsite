@@ -3,6 +3,7 @@ var DARK_MODE=true
 var USE_FASTNAT=true 
 var DEBUG_MODE=true
 var SHOW_LONG_NATS=true
+var DEBUG=!true
 //Not working:: R.times(R.plus(3,7),R.plus(4,5))
 //Type theory rules
 // x:A, f:A->B              f (x) : B
@@ -687,7 +688,7 @@ class ForAll {
         return result
     }
     toString() {
-        var tempVari = new C(getNewVariName(), this.first)
+        var tempVari = new C(getNewVariName()+(DEBUG?"_{"+this.vari.symbol+"}":""), this.first)
         var second = this.appliedTo(tempVari) //this.func(tempVari)
 
         //return "\\bigwedge\\limits_{"+this.vari+":"+ this.first+"}"+fill(this.second.toString());
@@ -739,7 +740,7 @@ var DOIT=true;
 
 //better if it's Fun(type, f)
 class Fun {
-    constructor(x, f) {
+    constructor(x, f, nametip=null) {
 
         const inst = function (...args) {
             return inst.apply(...args)
@@ -755,6 +756,7 @@ class Fun {
         inst.second = f ? f(x) : null
         inst.symbol = "⇒"
         inst.color = "cyan";
+        inst.nametip = nametip
 
         //check if it contains the variable then it is dependent type
         if( ContainsVar(inst.second.type, x ) )
@@ -766,10 +768,13 @@ class Fun {
         return inst
     }
     toString() {
+        
         //return "\\lambda_{("+this.vari+":"+this.first +")}." + this.second
-        var tempVari = new C(getNewVariName(), this.first)
+        var tempVari = new C((this.nametip?this.nametip:getNewVariName())+(DEBUG?"_{"+this.vari.symbol +"}":""), this.first)
+        
         var newsecond = REPLACE(this.second, this.vari, tempVari)
 
+        //return "\\left\\{" + fill(newsecond.toString()) + "\\mid" + tempVari +"\\in"+this.first +"\\right\\}";  //set notation
         return "(" + tempVari + ":" + this.first + ")⇒" + fill(newsecond.toString())
         //return "("+this.vari+":"+this.first +")⇒"+this.second.toString;
     }
@@ -820,9 +825,9 @@ function ContainsVar(A,X){
 
 //complexGraph( FUN(CR,z=>iter(CR, FUN(CR, x=>CR.plus(CR.times(x,x),z) ) , z , 10) ))
 
-function FUN(t,f){
+function FUN(t,f,nametip=null){
    // console.log(t.symbol)
-    return new Fun( new C(getUniqueName(t),t) , f )
+    return new Fun( new C(getUniqueName(t),t) , f ,nametip )
     //return new Fun( t , f )
 }
 
@@ -1043,7 +1048,7 @@ function decimalToFraction(decimal, tolerance = 1.0e-15) {
 function toRat(n){
     var sign=1;
     if(n<0) { n=-n; sign=-1;}
-    if(Math.floor(n)==n) return RationalMk.apply(sign*n,1)
+    if(Math.floor(n)==n) return Rat.mk.apply(sign*n,1)
     else {
         //var den = Math.pow(10,n.countDecimals())
         //var num = Math.floor(n*den+0.5)
@@ -1053,7 +1058,7 @@ function toRat(n){
         var num=r.numerator;
         console.log(num+"/"+den)
         var GCD = (num>den)? gcd(num,den) : gcd(den,num)
-        return RationalMk.apply( sign*(num/GCD),den/GCD)
+        return Rat.mk.apply( sign*(num/GCD),den/GCD)
     }
 }
 
@@ -1240,13 +1245,15 @@ function REPLACE(big, small, newterm ,varis=[], RD=new ReplaceData()){
         //if(big.type.appliedTo)
         //    S.type = REPLACE(big.type, small, newterm,varis,RD) //infinite loop
         //S.type=Nat       
+        var nametip = big.nametip
         var newbig = big.kind=="fun" ?
-         new Fun(vari, x=>REPLACE(S, vari, x)) :   new ForAll(vari, x=>REPLACE(S, vari, x))     
+            new Fun(vari, x=>REPLACE(S, vari, x),nametip) :   
+            new ForAll(vari, x=>REPLACE(S, vari, x))     
         
          return newbig;
     }
     if(big.kind!="atom")
-        print(normal("kind not found in replace "+big.kind +" ")+fill(big.toString()))
+        print(normal("kind not found in replace "+big.kind +" "))//+fill(big.toString()))
     return cloneInstantiated(big)
 }
 
@@ -1267,7 +1274,7 @@ function findMatch(big, small, newterm ,varis=[]){  //, RD.assigned=[]
         return firstmatch || findMatch(big.second, small)//, newterm,varis,RD); 
     }
     if(big.kind!="atom")
-    print("kind not found in replace "+big.kind +" "+fill(big.toString()))
+    print("kind not found in replace "+big.kind +" ")//+fill(big.toString()))
     return false
 }
 
@@ -1520,12 +1527,13 @@ function REBUILD(big){
     if(big.kind=="applied"){
         return APPLY(REBUILD(big.first),REBUILD(big.second))
     }
-    if(big.kind=="fun" ){//???
-        var newVari = new C(getUniqueName(),  REBUILD(big.first))
+    if(big.kind=="fun"  ){//???
+        var newVari = new C(getUniqueName(), big.first)// REBUILD(big.first))
         //var newVari= cloneInstantiated(big.vari, true)
         //var S=REBUILD(big.second)
+        return new Fun(newVari, x=>big.appliedTo(x),big.nametip)
         var S=REBUILD(big.appliedTo(newVari )) //REBUILD(big.second)
-        return new Fun(newVari, x=>REPLACE(S, newVari, x)) //<-- part of the problem is we are using REPLACE(!!!)
+        return new Fun(newVari, x=>REPLACE(S, newVari, x),big.nametip) //<-- part of the problem is we are using REPLACE(!!!)
     }
     //if(big.kind!="atom")
     //print("kind not found in replace "+big.kind)

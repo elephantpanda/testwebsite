@@ -23,12 +23,47 @@
     Load txt : <input type="file" id="txtFileInput" ><br>
     <canvas id="bitmapCanvas"></canvas>
     <br>
+    
+    <button onclick="runInference()">Inference Test</button>
     <div id="output"></div>
-
+    <h3>ONNX model loading</h3>
     <script>
         createInput(`a=MultiArray(Float32, LIST(1,10));
 
 model = FUN(a,x=>FUN(a,y=> plus(a,x,y) ))`)
+    </script>
+
+    Draw the graph using: eqGraph(NeuralNet1.def)
+
+<h3>Loading training artefact ONNX files</h3>
+This is probably a better option to begin with
+
+<script>
+    createInput(`//TRAIN(in=>expected=>W=>trainingModel,training_data={},1000)
+    `)
+</script>
+
+<h3>Back Propagation using Deriv</h3>
+(Probably not worth implementing at this stage. We can use the deriv to calculate the weight gradients in a simple model)
+    <script>
+createInput(`model2 =FUN(R,weight=> FUN(R,input=>Tanh(R.times(input,weight)) ));
+
+error =   FUN(R,expected=>FUN(R,input=> FUN(R,weight=> R.power( R.sub(model2(weight,input),expected) ,2))))
+
+dEdW = FUN(R,expected=>FUN(R,input=>Deriv(error(input,expected))));
+
+//TRAIN( expected=>inputs=>weights=> error, training_data={[in1,in2], [expected]}, weightTypes=[W1,W2,W3], 0.001, 1000) = [newW1,newW2,newW3]
+// new_weights += 0.001 * Deriv(error(inputs,expected), weights)
+
+//example solve quadratic equation: (W^2-5*W+6) = 0 //no inputs
+//TRAIN( _=>_=>W=>(W^2-5*W+6)^2, training_data={}, weightTypes-[Real], 0.001,1000) = [2.0 or 3.0]
+
+//Or we might use (?): but then hard to know if |error| is going down
+//TRAIN(  dW ,   )
+//W_new = Iterate( W=>W+0.01*dE(W), 1000)(0)
+//W += dE(W)   delta W = s* diff(E)/diff(W) 
+
+`)
     </script>
 
 
@@ -318,17 +353,20 @@ plus(a.type,a,b)
                         //console.log("output", outputTypes[0])
 
                         //create function object
-                        if(!true){
-                            var funcObj = outputObj;
+                        var funcObj= null;
+                        if(true){
+                            funcObj = outputObj;
                             console.log("inputList",inputList)
                             for(var i=0;i<inputList.length;i++){
                                 funcObj = FUN( inputList[i].type , x=>REPLACE(funcObj,inputList[i],x))
                                 //new Fun(inputList[i], x=>REPLACE(funcObj,inputList[i],x) )
                             }
-                            window.graphName=defineVar(graphName, funcObj);
-                            print(window[graphName]+":"+window[graphName].type)
-                            MathJax.typeset()
+                            //window.graphName=defineVar(graphName, funcObj);
+                            //print(window[graphName]+":"+window[graphName].type)
+                            //MathJax.typeset()
+                            console.log("FuncObj done");
                         }
+                        
                         //create virtual NN object
                         if(true){
                             var T=outputTypes[0];
@@ -337,17 +375,24 @@ plus(a.type,a,b)
                             }
                             
                             for(var i=paramNames.length-1;i>=0;i--){
+                                console.log(i+"/"+paramNames.length)
                                 console.log(paramNames[i])
                                 var paramObj = nameToParam[ paramNames[i]]
                                 T = FORALL( Nat , x=>REPLACE( T, paramObj, x ))
                             }
+                            
+
                             var VNN=Var(graphName,T);
                             VNN.fastValue = x=> runInference([x])
+                            
+
+                            VNN.def = funcObj; //assign graph as the definition 
                             window[graphName] = VNN;
+                            results[1]=VNN;
                             print(window[graphName]+":"+window[graphName].type)
                             MathJax.typeset()
                         }
-
+                        
                         if(!true){
                             print(outputObj)
                             console.log("MathJax",MathJax);
@@ -427,11 +472,11 @@ plus(a.type,a,b)
         var nodeNames = ["Add"]
         var nodeObjs  = [plus]
 
-        function compileNN(name, f){
+        function compileNN(name, f){ 
             //create an onnxmodel
             var obj= defineVar(name,f);
             var inputs=[]
-            var outputs=[]
+            var outputs=[] //need to set outputs!
             var nodes=[]
             //get inputs: FUN(Type1,input1=>FUN(Type2, input2=>   )
             var froot= f;
@@ -530,7 +575,6 @@ plus(a.type,a,b)
         }
 
     </script>
-    <button onclick="runInference()">Inference Test</button>
     </div>
 </body>
 </html>

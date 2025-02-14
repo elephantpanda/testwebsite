@@ -33,16 +33,42 @@ If we have a proof of proposition A then it is true that A or B is true where B 
 <p class="eq">right <sub>A,B</sub>  (B.proof) : A ∨ B</p>
 This allows us to create proofs of propositions <span class="eq2">True ∨ False</span> but not <span class="eq2">False ∨ False</span>
 <br>Example:<br>
-<script>createInput(`Prop.left(True)(False)(True.proof)`)</script>
+<script>createInput(`Prop.left(True,False)(True.proof)`)</script>
 <h3>Imply</h3>
-If a proposition A implies another proposition B, it means given A.proof we can construct a B.proof. In other words we can construct a function, f,  which takes in A.proof and returns B.proof. So   <span class="eq2">f(A.proof)=B.proof</span>. Thus we write
+If a proposition A implies another proposition B, (written A.to(B) ) it means given A.proof we can construct a B.proof. In other words we can construct a function, f,  which takes in A.proof and returns B.proof. So   <span class="eq2">f(A.proof)=B.proof</span>. Thus we write
 <p class="eq">f : A → B</p>
 We introduce <span class="eq2">f = id<sub>True</sub> = (x:True)⇒(x:True)</span> for the proof of <span class="eq2">True → True</span>.
 <script>createInput(`Prop.id(True)`)</script>
 <h3>Not</h3>
-We define Not as equivalent to the proposition <span class="eq2">A→False</span>
+We define Not(A) as equivalent to the proposition <span class="eq2">A→False</span>. Then we can create a proof of <span class="eq2">not False</span> using id.
+
+<script>createInput( `
+Prop.not.def;
+Prop.id( Prop.not(False) , Prop.id(False) )`)</script>
+
+<h3>Qualifiers</h3>
+A simple example. Find a proof that forall x show that <span class="eq2">x or True</span> is true. This involves creating a function of the correct type.
+
+<script>createInput(`FUN(Prop,x=>Prop.right(x,True)(True.proof))`)</script>
 
 
+<br><br>
+
+An example of a proof of the chaining rule:
+
+<script>createInput(`FUN(Prop,a=>FUN(Prop,b=>FUN(Prop,c=>FUN(a.to(b),f=>FUN(b.to(c),g=>FUN(a,x=>g(f(x)))))))).type`)</script>
+
+<h3>Deducibility</h3>
+Here is a proof for <span class="eq2">(T→F)→F</span> or more generally <span class="eq2">(T→x)→x</span>
+
+<script>createInput(`FUN(True.to(False),h=>h(True.proof)).type;
+FUN(Prop,x=>FUN(True.to(x),h=>h(True.proof))).type;
+`)</script>
+
+<h3>Double Negation</h3>
+This should technically work, but the definitional equality is not simplifying enough:
+
+<script>createInput(`Prop.id(Prop.not(Prop.not(True)),  FUN(True.to(False),h=>h(True.proof)) )`)</script>
 
 </div>
 </body>

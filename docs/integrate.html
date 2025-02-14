@@ -1,0 +1,106 @@
+
+<div id="output">OUTPUT</div>
+
+<script>
+
+var sum=0;
+var t=0;
+function loop(){
+    for(var n=0;n<1000000;n++){
+        x=Math.random();
+        y=Math.random();
+        z=Math.random();
+        u=Math.random();
+        v=Math.random();
+        s=Math.random();
+        if(x<y && y<z && z<u && u<v && v<s){
+            r=(2*x*y*y-2*s*y*y-y*y-x*x*y+s*s*y+2*s*y-s*s);
+            sum+= 1/(r);
+            t++;
+        }
+    }
+    
+
+document.getElementById("output").innerHTML=""+(sum/t);
+}
+
+function loop1(){
+    for(var n=0;n<1000;n++){
+        x=Math.random();
+        if(true){
+            sum+= 1-x;
+            t++;
+        }
+    }
+    document.getElementById("output").innerHTML=""+(t/sum);
+}
+
+function loopF(){
+    for(var n=0;n<1000000;n++){
+        x=Math.random();
+        y=Math.random();
+        u=Math.random();
+        v=Math.random();
+        s=Math.random();
+        if(x<y && y<u && u<v && v<s){
+            //sum+=((u-s)*(y-1)*(u*y-u*x-1)*(u*y-s*y-u+s+1))/(u*y*y-2*u*x*y-u*u*y+2*s*u*y-s*s*y+u*x*x+u*u-2*s*u+s*s)/2;
+            var R=(u*y*y-2*u*x*y-u*u*y+2*s*u*y-s*s*y+u*x*x+u*u-2*s*u+s*s);
+            sum+=1.0/Math.pow(R,2); //6-8/2
+            //console.log(sum);
+            //console.log(x+" "+y+" "+z+" "+u+" "+v+" "+s);
+            t++;
+        }
+    }
+    
+
+document.getElementById("output").innerHTML=""+(sum/t);
+}
+
+//divergent
+function loopDiv(){
+    for(var n=0;n<100000;n++){
+        x=Math.random();
+        if(true){
+            sum+= 1/x;
+            t++;
+        }
+    }
+    document.getElementById("output").innerHTML=""+(sum/t);
+}
+
+function loop2(){
+    for(var n=0;n<100000;n++){
+        x=Math.random();
+        y=Math.random();
+        if(true){
+            sum+=1+1/(x+y);
+            t++;
+        }
+    }
+    document.getElementById("output").innerHTML=""+(sum/t);
+}
+
+
+//diverges very fast!
+function loopIO(){
+    for(var n=0;n<1000000;n++){
+        x=Math.random();
+        y=Math.random();
+        t=Math.random();
+        s=Math.random();
+        if(x<y && y<t && t<s){
+            //sum+=((u-s)*(y-1)*(u*y-u*x-1)*(u*y-s*y-u+s+1))/(u*y*y-2*u*x*y-u*u*y+2*s*u*y-s*s*y+u*x*x+u*u-2*s*u+s*s)/2;
+            r=(2*x*y*y-t*y*y-2*y*y-x*x*y-2*s*x*y+t*t*y+t*y+2*s*y+y+2*s*t*x-2*s*t*t-t*t+s*s*t-s*s);
+            sum+=1.0/Math.pow(r,3); //5-d/2
+            //console.log(sum);
+            //console.log(x+" "+y+" "+z+" "+u+" "+v+" "+s);
+            t++;
+        }
+    }
+    document.getElementById("output").innerHTML=""+(sum/t);
+}
+
+setInterval(loopF,0);
+
+
+</script>
