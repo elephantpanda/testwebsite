@@ -17,6 +17,8 @@ Possible bugs: It is not clear what the type should be of a FORALL. It is set so
 <br>Type Bug<br>
 <script>createInput(`powerRuleT`)</script><br>
 <script>createInput(`iterProp`)</script><br>
+<script>createInput(`FUN(Type, T=>FUN(T,U=> FUN(T,x=>FUN(U,y=>x))))`)</script>
+
 Simplifies wrong:
 <script>
     createInput(`
@@ -59,6 +61,9 @@ FORALL(Nat, T=>FUN(T, z=>z)) `)
 <br>
 <h3>Simplifies wrongly:</h3>
 <script>
+    createInput(`FUN(Type, t=>FUN(t,x=>FUN(Real, y=> x ) ))`)
+</script>
+<script>
     createInput(`
     FUN(Type,T=>FUN(T, w=>plus(T,w)))
      `)
@@ -75,6 +80,7 @@ FORALL(Nat, T=>FUN(T, z=>z)) `)
 createInput(`FUN(Type, T=>FUN(T, U=>FUN(U,V=>FUN(V,W=>FUN(W,x=>FUN(x,y=>y))))))`)
 </script>
 <br>
+Float should work here?
 <script>
 createInput(`toCauchy(Real.Exp( Real.fromRat.def(1 )))(100)`)
 </script>
@@ -89,12 +95,12 @@ typeof A(3)`)
     </br>
 
 //
-Float value not working:
+Float value not working [FIXED?]:
 <script>
     createInput(`toCauchy(Pi.def)(10)`)
 </script>
 <h2>Broken</h2>
-This breaks when you click SIMP. This stems from the times(x,x) line which breaks when it has two x's.
+This breaks when you click SIMP. This stems from the times(x,x) line which breaks when it has two x's [WORKING?].
 <script>
     createInput( `ff=FUN(R,x=>R.plus(x,x));
 g = FUN(R2R,f=>FUN(R,z=>R.plus(2,f(z))));

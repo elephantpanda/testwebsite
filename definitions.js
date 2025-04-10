@@ -47,12 +47,168 @@ square = FUN(x=>Nat.times(x,x))
 
 // Fields Nat, Rational, Int, Complex, Quaternion, Octonion
 
+//*************Fast values************* //Type objects
+class FloatObj{
+    plus = (x,y)=> x+y;
+    minus = (x,y)=> x-y;
+    times = (x,y)=>x*y; 
+    divide = (x,y)=>x/y;
+    conj = x=>x;
+    exp = Math.exp;
+    log = Math.log;
+    sqrt= Math.sqrt;
+
+    cos = Math.cos;
+    sin = Math.sin;
+    tan = Math.tan;
+
+    cosh = Math.cosh;
+    sinh = Math.sinh;
+    tanh = Math.tanh;
+
+    zero = 0;
+    one = 1;
+}
+
+class ListObj{ //treat everything as flat lists
+    constructor(T_){
+        this.T=T_;
+    }
+    plus = (x,y)=>{
+        var z=new Array(x.length); for(var i=0;i<z.length;i++) z[i] = this.T.plus(x[i],y[i]); return z;
+    }
+    minus = (x,y)=>{
+        var z=new Array(x.length); for(var i=0;i<z.length;i++) z[i] = this.T.minus(x[i],y[i]); return z;
+    }
+    times = (x,y)=>{
+        var z=new Array(x.length); for(var i=0;i<z.length;i++) z[i] = this.T.times(x[i],y[i]); return z;
+    }
+    divide = (x,y)=>{
+        var z=new Array(x.length); for(var i=0;i<z.length;i++) z[i] = this.T.divide(x[i],y[i]); return z;
+    }
+    sin = x=>x.map(this.T.sin);
+    cos = x=>x.map(this.T.cos);
+    tan = x=>x.map(this.T.tan);
+
+    sinh = x=>x.map(this.T.sinh);
+    cosh = x=>x.map(this.T.cosh);
+    tanh = x=>x.map(this.T.tanh);
+
+    exp = x=>x.map(this.T.exp);
+    log = x=>x.map(this.T.log);
+
+    sqrt = x=>x.map(this.T.sqrt);
+
+    toString = ()=>"ListObj("+this.T+")";
+}
+class MultiArrayObj extends ListObj{
+    constructor(T_,shape_){
+        super(T_);
+        this.shape=shape_;
+    }
+    toString = ()=>"MultiArrayObj("+this.T+","+this.shape+")";
+}
+
+
+
+class NatObj extends FloatObj{
+    divide= (x,y)=>Math.floor(x/y);
+    toString = ()=>"NatObj";
+}
+class RatObj extends FloatObj{ 
+    toString = ()=>"RatObj"; 
+}
+class RealObj extends FloatObj{ 
+    toString = ()=>"RealObj"; 
+}
+class IntObj extends FloatObj{ 
+    divide= (x,y)=>Math.floor(x/y);
+    toString = ()=>"IntObj"; 
+}
+
+class ComplexObj{
+    constructor(T_){
+        this.T=T_;
+    }
+    zero = [0,0]
+    one = [1,0]
+    I = [0,1]
+    plus = (x,y)=>[ this.T.plus(x[0],y[0]), this.T.plus(x[1],y[1])   ]
+    minus = (x,y)=>[ this.T.minus(x[0],y[0]), this.T.minus(x[1],y[1])   ]
+    times = (x,y)=>[ this.T.minus(this.T.times(x[0],y[0]) ,this.T.times(x[1],y[1]) )   ,
+                     this.T.plus( this.T.times(x[0],y[1]), this.T.times(x[1],y[0]))   ]
+    norm = y=>this.T.plus(this.T.times(y[0],y[0]) ,this.T.times(y[1],y[1]) ) ;
+    divide = (x,y)=>{
+        var den = this.norm(y);
+       // var num = this.times(x,this.conj(y));
+        return[ this.T.divide(this.T.plus (this.T.times(x[0],y[0]) ,this.T.times(x[1],y[1])) ,den)  ,
+                this.T.divide(this.T.minus(this.T.times(x[1],y[0]), this.T.times(x[0],y[1])) ,den) ] ;
+    }
+    conj = x => [this.T.conj(x[0]),-y[0] ]
+    exp = x=> [ this.T.times(this.T.exp(x[0]),this.T.cos(x[1])) ,  this.T.times(this.T.exp(x[0]),this.T.sin(x[1]))   ]
+
+    sin = z=>[this.T.times(this.T.sin(z[0]),this.T.cosh(z[1])),this.T.times( this.T.cos(z[0]),this.T.sinh(z[1]))]
+    cos = z=>[this.T.times(this.T.cos(z[0]),this.T.cosh(z[1])), this.T.minus(this.T.zero,this.T.times(this.T.sin(z[0]),this.T.sinh(z[1])))]
+    //tan = z=>{ var d=this.T.cos(2*z[0])+this.T.cosh(2*z[0]);  return [this.T.sin(2*z[0])/d,   this.T.sinh(2*z[1])/d]}
+    //sqrt= z=>{ var r=this.T.pow(z[0]**2+z[1]**2,0.25);
+
+    toString = ()=>"ComplexObj("+this.T+")"
+}
+class QuaternionObj{
+    constructor(T_){
+        this.T=T_;
+    }
+    plus = (x,y)=>[ this.T.plus(x[0],y[0]), this.T.plus(x[1],y[1]), this.T.plus(x[2],y[2]) , this.T.plus(x[3],y[3])    ]
+    minus = (x,y)=>[ this.T.minus(x[0],y[0]), this.T.minus(x[1],y[1]), this.T.minus(x[2],y[2]) , this.T.minus(x[3],y[3])    ]
+    times = (x,y)=>{
+        //(a,b,c,d) = (x[0],x[1],x[2],x[3]);
+        //(e,f,g,h) = (y[0],y[1],y[2],y[3]);
+        //wrong at moment:
+        return [ this.T.minus(this.T.times(x[0],y[0]) ,this.T.times(x[1],y[1]) )   ,
+                     this.T.plus( this.T.times(x[0],y[1]), this.T.times(x[1],y[0]))   ]
+
+    }
+    toString = ()=>"QuaternionObj("+this.T+")"
+}
+
+//could store this as single array [0...n*n-1]
+class GLObj extends ListObj{ //GL(n)
+    constructor(T_,n_){
+        super(T_);
+        this.T=T_;
+        this.n=n_;
+        this.one = new Array(this.n*this.n).fill(this.T.zero);
+        this.zero = new Array(this.n*this.n).fill(this.T.zero)
+        for(var i=0;i<this.n;i++) this.one[i*(this.n+1)] = this.T.one;      
+    }
+
+    times = (x,y)=>{
+        var z = new Array(this.n*this.n);//.fill(this.zero);
+        for(var i=0;i<this.n;i++){
+            for(var j=0;j<this.n;j++){
+                var result = this.T.zero;
+                for(var k=0;k<this.n;k++){
+                    result=this.T.plus(result, this.T.times(x[i*this.n+k],y[k*this.n+j]  )  )
+                }
+                z[i*this.n+j] = result;
+            }
+        }
+        return z;
+    }
+    toString = ()=>"GLObj("+this.n+","+this.T+")"
+
+}
+
+
+//----------------------------------------defintions-------------------------------
+
+
 var SHOW_NUMBER_TYPES=false
 
 var numberWinVariables=0//Object.keys( window ).length
 
 
-var Nat = AXIOM("ℕ",Type); Nat.fastValue=Nat; Nat.notation = blue("ℕ");
+var Nat = AXIOM("Nat",Type); Nat.fastValue=new NatObj(); Nat.notation = blue("ℕ");
 var zero = Nat.zero = AXIOM(0,Nat); Nat.zero.notation = SHOW_LONG_NATS?"0":0; Nat.zero.fastValue=0;
 var succ = Nat.succ = AXIOM("S", Nat.to(Nat)) ; succ.notation = x=> ( typeof x ==='number'? 1+x : "("+red(bold("S"))+x+")"   ); succ.fastValue = x=>1+x;
 var x = AXIOM("x", Nat)
@@ -80,7 +236,7 @@ function isNumber(x){
     return (typeof x == 'number') ||  (typeof x =='bigint');
 }
 
-var Int = AXIOM("ℤ",Type) ; Int.notation = blue("ℤ")
+var Int = AXIOM("ℤ",Type) ; Int.notation = blue("ℤ"); Int.fastValue = new IntObj();
 var IntMk = Int.mk= AXIOM("ℤ.mk", Nat.to(Nat.to(Int))) ; Int.mk.fastValue = x=>y=>(x-y);
 IntMk.notation = x=>y=>{
     if( isNumber(x) && isNumber( y)) return (BigInt(x)-BigInt(y))
@@ -103,14 +259,14 @@ function INT(x){
 
 
 var Complex = AXIOM("ℂ",Type.to(Type)); //--struct
-Complex.notation = type=>blue("ℂ")+"["+type+"]"; Complex.fastValue =  x=>"C["+x+"]";
+Complex.notation = type=>blue("ℂ")+"["+type+"]"; Complex.fastValue = x=>new ComplexObj(x);  //x=>"C["+x+"]";
 var ComplexMk = Complex.mk = AXIOM("ℂ.mk", new ForAll( new C(cal("F"),Type) , F=>F.to( F.to(Complex(F)))))
 ComplexMk.notation = type=>x=>y=>{
     if(x==0)  return y==1? bold("i"): ( y==-1? bold("-i") : y+ (bold("i"))  );
     return "("+x+" + " + y + (bold("i"))+")"//   + subscript(type)
 }
 Complex.mk.fastValue = t=>x=>y=>[x,y]
-//Do I have to define it as Complex(Cos()+iSin())??
+//Do I have to define it as Complex(R.cos()+iSin())??
 // or   (f=>Complex(Real)( Re(f) , Im(f)  )(  n=> Complex(Rational)(n) )
 
 
@@ -134,7 +290,7 @@ Octonion.mk.notation = type=>re=>e1=>e2=>e3=>e4=>e5=>e6=>e7=>"("+re+"+"+e1+QE(1)
 // --------------------RATIONAL----------------------------
 
 
-var Rat = Rational = AXIOM("ℚ",Type) ;Rat.fastValue="Q"; Rat.notation = blue("ℚ")
+var Rat = Rational = AXIOM("ℚ",Type) ;Rat.fastValue=new RatObj();/*"Q";*/ Rat.notation = blue("ℚ")
 var RAT = Rat.mk = AXIOM("ℚ.mk", Int.to(Int.to(Rational)))  ; Rat.mk.fastValue = x=>y=>Number(x)/Number(y);
 
 var RatReduce=AXIOM("RatReduce", Rat.to(Rat)  )
@@ -221,16 +377,16 @@ var times = AXIOM("×", FORALL(Type, F=>F.to(F.to(F)) )); times.notation=type=>x
 var sub = AXIOM("-", FORALL(Type,F=>F.to(F.to(F))  ));   sub.notation=type=>x=>y=>"("+fill(x)+"-"/*+subscript(type)+""*/+fill(y)+")"
 var divide = AXIOM("/", FORALL(Type,F=>F.to(F.to(F))  ));divide.notation=type=>x=>y=>"\\frac{"+fill(x)+"}{"/*+subscript(type)*/+""+fill(y)+"}"
 
-times.fastValue = t=>x=>y=>x*y;
-sub.fastValue = t=>x=>y=>x-y;
-divide.fastValue = t=>x=>y=>x/y;
-plus.fastValue = t=>x=>y=>x+y;
+times.fastValue = t=>x=>y=> t.times(x,y); 
+sub.fastValue = t=>x=>y=>t.minus(x,y);
+divide.fastValue = t=>x=>y=>t.divide(x,y);
+plus.fastValue = t=>x=>y=> t.plus(x,y); 
 
-times.fastValue = t=>x=>y=>{
+/*times.fastValue = t=>x=>y=>{
     //if(t.fastTimes) return t.fastTimes(x,y);
     //if(t.kind=="applied" && t.first.fastTimes) return t.first.fastTimes(t.second.float())(x)(y) //SLOWER!!!
     return x*y;
-}
+}*/
 
 
 
@@ -256,7 +412,7 @@ Closure.notation = T=>"\\widehat{"+T+"}"
 var R = Real = AXIOM("ℝ",Type);
 //var R = Real = ALIAS("ℝ", Closure(Rat))
 
-Real.fastValue=Real; Real.notation =blue("ℝ")  //"R";
+Real.fastValue=new RealObj(); Real.notation =blue("ℝ")  //"R";
 //Real = Cauchy series: {F[i]}
 Real.mk = AXIOM("R.mk", Nat.to(Rational).to(Real) ) /*plus proof of convergence?*/
 Real.mk.notation = (x,y)=>{  
@@ -340,12 +496,23 @@ equals.fastValue = type=>x=>y=>(x==y)
 //Prop.id = FUN(Prop,t=>FUN(t,x=>x))
 //Type.id = FUN(Type,t=>FUN(t,x=>x))
 
-Prop.id = ALIAS(bold("id"), FUN(Prop,t=>FUN(t,x=>x)))
-Type.id = ALIAS(bold("id"), FUN(Type,t=>FUN(t,x=>x)))
+
+Prop.id = ALIAS("prop.id", FUN(Prop,t=>FUN(t,x=>x)));Prop.id.notation=t=>"{"+bold("id")+"}_{"+fill(t)+"}";
+Type.id = ALIAS("type.id", FUN(Type,t=>FUN(t,x=>x)));Type.id.notation=t=>"{"+bold("id")+"}_{"+fill(t)+"}";
+function ID_(A){
+    return A.type.id(A);
+}
+
+//*****[Homotopic type theory] (Equivalance of functions)*****
+Type.funcId = ALIAS("Type.funcId", FUN(Type,T=>FUN(T,p=>FUN(p,q=>q) )));
+Prop.funcId = ALIAS("Prop.funcId", FUN(Prop,T=>FUN(T,p=>FUN(p,q=>q) )));
+//homotopy?? = Type.id2(Nat.to(Nat),Type.id(Nat))
+Type.homotomy = ALIAS("type.homotomy",FUN(Type, t=>FUN(t.to(t),myid=>myid)));Type.homotomy.notation=t=>"{"+bold("homotomy")+"}_{"+fill(t)+"}";
 
 
-var False = AXIOM("⊥",Prop);False.notation = red("⊥")
-var True = AXIOM("⊤",Prop);True.notation = red("⊤")
+
+var False = AXIOM("⊥",Prop);False.notation = red("⊥"); FALSE=False;
+var True = AXIOM("⊤",Prop);True.notation = red("⊤"); TRUE=True;
 True.proof = AXIOM("⊤.proof",True)
 True.fastValue=true
 False.fastValue=false
@@ -396,13 +563,14 @@ gt.prop =  AXIOM("gtprop",FORALL(Nat,a=>equals(Prop, Nat.gt(succ(a),zero ) , Tru
 
 
 //---------------------LIST----------------------
-var List = AXIOM("L",Type.to(Type)) ;List.notation = type=>"{"+type+"}^{[*]}" //type=>blue("List")+"["+type+"]"
-var LEnd = AXIOM("[]", FORALL(Type,F=>List(F))) ; LEnd.notation = type=>"\\{\\}";//"∅"
-var LNext = AXIOM("Concat", FORALL(Type,T=>T.to(List(T).to(List(T))) ));
-LNext.fastValue = t=>x=>rest=>{
+var List = AXIOM("List",Type.to(Type)) ;List.notation = type=>"{"+type+"}^{[*]}" //type=>blue("List")+"["+type+"]"
+List.fastValue = t=>new ListObj(t);
+List.End = AXIOM("List.End", FORALL(Type,F=>List(F))) ; List.End.notation = type=>"\\{\\}";//"∅"
+List.Next = AXIOM("Concat", FORALL(Type,T=>T.to(List(T).to(List(T))) ));
+List.Next.fastValue = t=>x=>rest=>{
     return rest.concat(x);
 }
-LEnd.fastValue = t=> [];
+List.End.fastValue = t=> [];
 
 List.get= AXIOM("get",FORALL(Type, T=>Nat.to(List(T).to(T))))
 List.get.notation = type=>n=>list=>list+"_{"+n+"}"
@@ -413,11 +581,11 @@ List.Length.notation=t=>L=> "|"+L+"|";
 
 var listLength1 = AXIOM("listlen1", 
     FORALL(Type, T=> FORALL( T, X=> FORALL( List(T), L=>
-    equals(Nat,  List.Length(T , LNext(T, X , L))  , S( List.Length(T, L )  )       )
+    equals(Nat,  List.Length(T , List.Next(T, X , L))  , S( List.Length(T, L )  )       )
 ))))
 var listLength0 = AXIOM("listlen0", 
     FORALL(Type, T=> FORALL( T, X=> FORALL( List(T), L=>
-    equals(Nat,  List.Length(T , LEnd(T))  , Nat.zero       )
+    equals(Nat,  List.Length(T , List.End(T))  , Nat.zero       )
 ))))
 
 List.Concat = AXIOM("concat",FORALL(Type, T=>List(T).to(List(T).to(List(T)) )));
@@ -430,24 +598,24 @@ List.Sum.fastValue = t=>l=>{
     return result;
 }
 //List.Sum(Nat,LIST(1,2,3,4))   
-var listGet0 = AXIOM("listGet0", FORALL(Type, T=> FORALL(T,x0 => FORALL(List(T),rest=>equals(T,  List.get(T, zero, LNext(T , x0 , rest )   )  , x0    )))))
-var listGet1 = AXIOM("listGet1", FORALL(Type, T=> FORALL(T,x0 => FORALL(Nat, n=> FORALL(List(T), rest=>equals(T,  List.get(T, succ(n), LNext(T, x0 , rest )   )  , List.get(T,n, rest  )  ))))))
+var listGet0 = AXIOM("listGet0", FORALL(Type, T=> FORALL(T,x0 => FORALL(List(T),rest=>equals(T,  List.get(T, zero, List.Next(T , x0 , rest )   )  , x0    )))))
+var listGet1 = AXIOM("listGet1", FORALL(Type, T=> FORALL(T,x0 => FORALL(Nat, n=> FORALL(List(T), rest=>equals(T,  List.get(T, succ(n), List.Next(T, x0 , rest )   )  , List.get(T,n, rest  )  ))))))
 
 var listLen =  AXIOM("listLen",FORALL(Type, T=>FORALL(T,element=>FORALL(List(T),L =>FORALL(Nat, n=> 
-    equals(Nat, List.Length(T, LNext( T, element, L  )) , succ( List.Length( T,L) ) ) ) ) )))
+    equals(Nat, List.Length(T, List.Next( T, element, L  )) , succ( List.Length( T,L) ) ) ) ) )))
 var listLen0 =  AXIOM("listLen0",FORALL(Type, T=>FORALL(T,element=>FORALL(List(T),L =>FORALL(Nat, n=> 
-    equals(Nat, List.Length(T, LEnd(T)) , Nat.zero   ) ) ) )))
+    equals(Nat, List.Length(T, List.End(T)) , Nat.zero   ) ) ) )))
 
-var L= LNext(Nat,7,LNext(Nat,5,LNext(Nat,3, LEnd(Nat))))
+var L= List.Next(Nat,7,List.Next(Nat,5,List.Next(Nat,3, List.End(Nat))))
 
-LNext.openNotation = type=>x=>(rest,y)=>x+","+y.openNotation
-LNext.notation = type=>x=>rest=>  "\\{"+x+","+rest+"\\}"
-//LNext.notation = type=>(x,z)=>(rest,y)=> "\\left(" + x + "," + y.first.kind+"\\right)" 
+List.Next.openNotation = type=>x=>(rest,y)=>x+","+y.openNotation
+List.Next.notation = type=>x=>rest=>  "\\{"+x+","+rest+"\\}"
+//List.Next.notation = type=>(x,z)=>(rest,y)=> "\\left(" + x + "," + y.first.kind+"\\right)" 
 
 //-----if it is the wrong type at that position it must return MixedList.Fail or something
 var MixedList = AXIOM("MixedList",Type)
-var MLNext = AXIOM("MConcat", FORALL(Type,T=>T.to(MixedList.to(MixedList) ) )   )
-var MLGet = AXIOM("MLGet",FORALL(Type, T=>Nat.to(T))  ) 
+MixedList.Next = AXIOM("MConcat", FORALL(Type,T=>T.to(MixedList.to(MixedList) ) )   )
+MixedList.Get = AXIOM("MLGet",FORALL(Type, T=>Nat.to(T))  ) 
 
 //The any type
 var Any = AXIOM("Any",Type); Any.notation="\\ast ";
@@ -463,13 +631,13 @@ function matchFunc(A,F,args){
     return F.symbol==A.symbol
 }
 
-//better list notation  //A[A[A[LNext,Type],x],rest] 
-LNext.notation = type=>x=>(rest,y)=>{
+//better list notation  //A[A[A[List.Next,Type],x],rest] 
+List.Next.notation = type=>x=>(rest,y)=>{
     //var result="\\{" + x;
     var result = x+"\\}";
-    //matchFunc(y, LNext,(null,null,null))
+    //matchFunc(y, List.Next,(null,null,null))
     var i=0;
-    while(y.kind=="applied" && y.first && y.first.first && y.first.first.first && y.first.first.first.symbol == LNext.symbol){
+    while(y.kind=="applied" && y.first && y.first.first && y.first.first.first && y.first.first.first.symbol == List.Next.symbol){
         //result+=","+y.first.second.toString();
         result = y.first.second.toString()+"," + result;
         y=y.second
@@ -478,7 +646,7 @@ LNext.notation = type=>x=>(rest,y)=>{
             return "\\{..."+result;          
         }
     }
-     if(y.kind=="applied" && y.first.symbol==LEnd.symbol) return "\\{"+result;// return result+ "\\}"
+     if(y.kind=="applied" && y.first.symbol==List.End.symbol) return "\\{"+result;// return result+ "\\}"
    // return result + y.toString() +"\\}"
     return "\\{"+y.toString() + result;
 }
@@ -491,14 +659,14 @@ List.fromFunc.notation = T=>(f,y)=>n=>{
 
     if(y && y.kind=="fun"){
         var vari=new C(getNewVariName(),y.vari.type)
-        return "\\left\\{"+y.appliedTo(vari)+"\\middle|"+vari+"=0.."+n+"\\right\\}"
+        return "\\left\\{"+fill(y.appliedTo(vari).toString())+"\\middle|"+vari+"=0.."+n+"\\right\\}"
     }else
 
     return "\\left\\{"+f+"\\right\\}_{0.."+n+"}"
 }
 
-var listFromFunc1 =   FORALL(Type, T=>FORALL(Nat, N=>FORALL(Nat.to(T),F=>equals(List(T),  List.fromFunc(T, F,succ(N)  ),   LNext(T, F(N) ,  List.fromFunc(T,F,N)  ) ) )))
-var listFromFunc0 =   FORALL(Type, T=>FORALL(Nat.to(T),F=>equals( List(T),  List.fromFunc(T, F,Nat.zero  ),   LEnd(T ) ) ))
+var listFromFunc1 =   FORALL(Type, T=>FORALL(Nat, N=>FORALL(Nat.to(T),F=>equals(List(T),  List.fromFunc(T, F,succ(N)  ),   List.Next(T, F(N) ,  List.fromFunc(T,F,N)  ) ) )))
+var listFromFunc0 =   FORALL(Type, T=>FORALL(Nat.to(T),F=>equals( List(T),  List.fromFunc(T, F,Nat.zero  ),   List.End(T ) ) ))
 List.fromFunc.fastValue = t=>f=>n=>{
     var result=[];
     for(var i=0;i<=n;i++){
@@ -513,7 +681,7 @@ var Permutation = NewType("Permutation")
 Permutation.mk = AXIOM("Permutation.mk" , List(Nat).to(Permutation))
 Permutation.times = AXIOM("Ptimes", Permutation.to(Permutation.to(Permutation)))
 
-//var mylist = LNext(Nat,3,LNext(Nat,5,LEnd(Nat)))
+//var mylist = List.Next(Nat,3,List.Next(Nat,5,List.End(Nat)))
 
 
 
@@ -604,9 +772,9 @@ var iterProp =  AXIOM("iterProp", FORALL(Type, T=>FORALL(T.to(T), F=>FORALL(T, x
 
 var makeList = AXIOM("MakeList", FORALL(Type, F=>(Nat.to(F)).to(Nat.to(List(F)))   ))
 var makeListP = AXIOM("MakeListP", FORALL(Type, T=>FORALL( Nat.to(T), F=>  FORALL(Nat, n=> 
-         equals(List(T) ,  makeList(T,F,succ(n)) ,  LNext( T, F(succ(n)),  makeList(T,F,n)  )  )))))
+         equals(List(T) ,  makeList(T,F,succ(n)) ,  List.Next( T, F(succ(n)),  makeList(T,F,n)  )  )))))
 var makeList0 = AXIOM("MakeList0", FORALL(Type, T=>FORALL( Nat.to(T), F=> 
-            equals(List(T) ,  makeList(T,F,zero) ,  LEnd(T)  )  )))
+            equals(List(T) ,  makeList(T,F,zero) ,  List.End(T)  )  )))
 
 // ----------------REALS--------------------
 /*
@@ -711,40 +879,61 @@ Sqrt2.notation="\\sqrt{2}"
 
 var R2R = R.to(R);
 
+R2R.Id = AXIOM("R2RId",R2R.to(R2R))
+
+var IDD = AXIOM("IDD",FORALL(Type, t=>t.to(t))); IDD.notation = t=>bold("id")
+
 var z = AXIOM("z",Real)
 var w = AXIOM("w",Real)
-var Sin = AXIOM("sin", Real.to(Real)); Sin.notation = "\\sin";            Sin.fastValue= Math.sin
-var Cos = AXIOM("cos", Real.to(Real)); Cos.notation = "\\cos";            Cos.fastValue= Math.cos
-var Tan = AXIOM("tan", Real.to(Real)); Tan.notation = "\\tan";            Tan.fastValue= Math.tan    
-var Exp = AXIOM("exp", Real.to(Real)); Exp.notation = x=>"e^{"+x+"}";     Exp.fastValue= Math.exp
-var Log = AXIOM("log", Real.to(Real)); Log.notation = "\\ln";             Log.fastValue= Math.log
 
-var Sinh = AXIOM("sinh", Real.to(Real)); Sinh.notation = "\\sinh";            Sinh.fastValue= Math.sinh
-var Cosh = AXIOM("cosh", Real.to(Real)); Cosh.notation = "\\cosh";            Cosh.fastValue= Math.cosh
-var Tanh = AXIOM("tanh", Real.to(Real)); Tanh.notation = "\\tanh";            Tanh.fastValue= Math.tanh 
+//var Exp = AXIOM("exp", Real.to(Real)); Exp.notation = x=>"e^{"+x+"}";     Exp.fastValue= Math.exp
+var Exp = AXIOM("exp", FORALL(Type,T=>T.to(T))); Exp.notation = t=>x=>"e^{"+x+"}";     Exp.fastValue = T=>T.exp
+//Math.exp
+
+
+var Sin = AXIOM("sin", FORALL(Type,T=>T.to(T))); Sin.notation = t=>"\\sin";            Sin.fastValue= T=>T.sin
+var Cos = AXIOM("cos", FORALL(Type,T=>T.to(T))); Cos.notation = t=>"\\cos";            Cos.fastValue= T=>T.cos
+var Tan = AXIOM("tan", FORALL(Type,T=>T.to(T))); Tan.notation = t=>"\\tan";            Tan.fastValue= T=>T.tan    
+
+var Log = AXIOM("log", FORALL(Type,T=>T.to(T))); Log.notation = t=>"\\ln";             Log.fastValue= T=> T.log
+
+var Sinh = AXIOM("sinh", FORALL(Type,T=>T.to(T)));Sinh.notation = t=>"\\sinh";            Sinh.fastValue=  T=>T.sinh
+var Cosh = AXIOM("cosh", FORALL(Type,T=>T.to(T)));Cosh.notation = t=>"\\cosh";            Cosh.fastValue=  T=>T.cosh
+var Tanh = AXIOM("tanh", FORALL(Type,T=>T.to(T))); Tanh.notation = t=>"\\tanh";           Tanh.fastValue= T=>T.tanh 
 
 var Erf = AXIOM("erf",R2R); Erf.fastValue = x=>myerf(x);
 var Gamma = AXIOM("\\Gamma",R2R); Gamma.fastValue = x=>mygamma(x);
 
+function AddStandardFunctions(R){
+    R.sin = Sin(R)
+    R.cos = Cos(R)
+    R.tan = Tan(R)
+    R.sinh = Sinh(R)
+    R.cosh = Cosh(R)
+    R.tanh = Tanh(R)
+    R.log = Log(R)
+    R.exp = Exp(R)
+    //R.sqrt= Sqrt(R)
+}
 
-R.sin=Sin
-R.cos=Cos
+AddStandardFunctions(R);
 
 
 
 R2R.fromReal = AXIOM("castR2R",Real.to(R2R))
-R2R.fromReal.notation = x=> "("+x+")"+subscript(blue("ℝ\\rightarrow ℝ"))
+R2R.fromReal.notation = x=> "("+x+")"//+subscript(blue("ℝ\\rightarrow ℝ"))
 R2R.fromReal.def = FUN(R,x=> FUN(R,_=>x ) )
 R2R.fromReal.prop = FORALL(Real, x=> equals(R2R, R2R.fromReal(x) , R2R.fromReal.def(x)  ))
+R2R.fromReal.fastValue = x=>y=>x;
 
 var R2ROneL = AXIOM("R2ROne", FORALL(R2R, x=>equals(R2R, times(R2R,R2R.fromReal(1), x)  , x  )   ))
 var R2ROneR = AXIOM("R2ROne", FORALL(R2R, x=>equals(R2R, times(R2R,x,R2R.fromReal(1)), x   )   ))
 
 //Trig identities
 
-var sinPiZero = AXIOM("sinPiZero",Real.equals( Sin(Pi), Real.zero))
-var sinZero   = AXIOM("sinZero",  Real.equals( Sin(Real.zero), Real.zero))
-var cosZero   = AXIOM("cosZero",  Real.equals( Cos(Real.zero), Real.one))
+var sinPiZero = AXIOM("sinPiZero",Real.equals( R.sin(Pi), Real.zero))
+var sinZero   = AXIOM("sinZero",  Real.equals( R.sin(Real.zero), Real.zero))
+var cosZero   = AXIOM("cosZero",  Real.equals( R.cos(Real.zero), Real.one))
 
 var sinSum = AXIOM("sinSum",FORALL(R,x=>FORALL(R,y=>
     R.equals( R.sin(R.plus(x,y)), R.plus(R.times(R.sin(x),R.cos(y)), R.times(R.cos(x),R.sin(y))  )))))
@@ -759,7 +948,12 @@ toCauchy.fastValue = (x,y)=>n=>{
     if(y.kind=="applied" && y.first.symbol==R.mk.symbol &&  y.second.kind=="fun"){
         console.log("YES")
         return y.second.float(0)(n)
-    }
+        //return y.second.float(0)(n)
+    }//else if(y.first){  //toCauchy( f(x) ) --> return f(toCauchy(f(x))? 
+        //
+        //return y.first.def.float(0)(n); //NOT WORKING!!!
+    //}
+    return "[Can't evaluate] ";
 }
 
 var realSeriesProp = sorry(FORALL(Nat.to(Rational), F=> equals(Nat.to(Rational)  ,toCauchy( R.mk(F)   )   , F  )   ))
@@ -769,6 +963,7 @@ Real.Exp = ALIAS("Real.Exp",FUN( Real, x=> R.mk(FUN(Nat, n=> divide(Rational, po
 Real.Exp.notation = x=>"e^{"+x+"}"
 Real.Exp.fastValue = x=>Math.exp(x)
 Real.Sqrt = AXIOM("real.sqrt", Real.to(Real)); Real.Sqrt.notation = x=>"\\sqrt{"+x+"}"; Real.Sqrt.fastValue = Math.sqrt
+//Real.Log = AXIOM("ln", Real.to(Real));
 
 sqrtTimes = AXIOM("sqrtTimes" , FORALL(Real,x=>FORALL(Real,y=>equals(Real, Real.times(Real.Sqrt(x),Real.Sqrt(y)) ,Real.Sqrt(Real.times(x,y)) ))))
 sqrtSquare = AXIOM("sqrtSquare" , FORALL(Real,y=>equals(Real, Real.times(Real.Sqrt(y),Real.Sqrt(y)) ,y )))
@@ -795,6 +990,8 @@ var Compose = AXIOM("Compose",FORALL(Type, T=> ( T.to(T) ).to(( T.to(T) ).to( T.
 Compose.notation = t=>x=>y=>"("+fill(x)+"∘"+fill(y)+")"; Compose.fastValue = t=>f=>g=>(x=>f(g(x)))
 var Comp3 = AXIOM("Comp3",FORALL(Type, T=>FORALL(Type,U=>FORALL(Type, V=>( T.to(U) ).to(( U.to(V) ).to( T.to(V) )))))); 
 Comp3.notation = t=>u=>v=>x=>y=>"("+fill(x)+"∘"+fill(y)+")"
+Prop.compose = ALIAS("PropComp",FUN(Prop,a=>FUN(Prop,b=>FUN(Prop,c=>FUN(a.to(b),f=>FUN(b.to(c),g=>FUN(a,x=>g(f(x))))))))); 
+Prop.compose.notation = t=>u=>v=>x=>y=>"("+fill(x)+"∘"+fill(y)+")"
 
 //------------------real calculus------------
 //x=>[f(x+1/n)-f(x)] / (1/n)
@@ -885,18 +1082,23 @@ var combineDerivSum = AXIOM("DerivSum",
 ))))
 
 var Id = AXIOM("id",R2R); Id.notation="\\mathbf{id}" //=FUN(R,x=>x)
-//var derivSin = AXIOM("DerivSin",  FORALL(Real, x=>   equals( Real,   Deriv(Sin,x),   Cos(x)  )))
-var derivSin2 = AXIOM("DerivSin",   equals( R2R,   Deriv(Sin),   Cos  ))
-var derivCos2 = AXIOM("DerivCos",   equals( R2R,   Deriv(Cos),  times(R2R, -1, Sin ) ))
-var intCos2 = AXIOM("IntCos",   equals( R2R,   Integral(Cos),   Sin  ))
-var intSin2 = AXIOM("IntSin",   equals( R2R,   Integral(Sin),  times(R2R, -1, Cos)  ))
-var derivSqrt = AXIOM("DerivSqrt",   equals( R2R,   Deriv(Real.Sqrt),   divide(R2R,-0.5,Real.Sqrt)  ))
+//var derivSin = AXIOM("DerivSin",  FORALL(Real, x=>   equals( Real,   Deriv(Sin,x),   R.cos(x)  )))
+var derivSin2 = AXIOM("DerivSin",   equals( R2R,   Deriv(R.sin),   R.cos  ))
+var derivCos2 = AXIOM("DerivCos",   equals( R2R,   Deriv(R.cos),  times(R2R, -1, R.sin ) ))
+var derivTan = AXIOM("DerivTan", equals(R2R,Deriv(R.tan), divide(R2R,1,times(R2R,R.cos,R.cos)  )   ))
+var derivTanh = AXIOM("DerivTanh", equals(R2R,Deriv(R.tanh), divide(R2R,1,times(R2R,R.cosh,R.cosh)  )   ))
 
+var intCos2 = AXIOM("IntCos",   equals( R2R,   Integral(R.cos),   R.sin  ))
+var intSin2 = AXIOM("IntSin",   equals( R2R,   Integral(R.sin), sub(R2R,1,  R.cos)  ))
+var intId = AXIOM("IntId", equals(R2R,Integral(Id), divide(R2R, times(R2R,Id,Id) , 2  )  ))
+var derivSqrt = AXIOM("DerivSqrt",   equals( R2R,   Deriv(Real.Sqrt),   divide(R2R,-0.5,Real.Sqrt)  ))
+var intDeriv = AXIOM("IntDeriv", FORALL(R2R,F=>equals(R2R, Integral(Deriv(F)), sub(R2R, F, R2R.fromReal(F(Real.zero)) )   )))
 
 //NOT TRUE if F or G depends on x!
 var derivCompos = AXIOM("DerivCompos", FORALL(R2R, F=>FORALL(R2R, G=>equals( R2R, Deriv(compose(F,G)), times(R2R,compose( Deriv(F),G ),Deriv(G) )   ) )))
 
 var derivPlus = AXIOM("DerivPlus",  FORALL(R2R, F=>FORALL(R2R, G=>equals( R2R, Deriv(plus(R2R,F,G)),  plus(R2R, Deriv(F)  ,Deriv(G) )   ) )))
+var derivSub= AXIOM("DerivSub",  FORALL(R2R, F=>FORALL(R2R, G=>equals( R2R, Deriv(sub(R2R,F,G)),  sub(R2R, Deriv(F)  ,Deriv(G) )   ) )))
 var derivTimes = AXIOM("DerivTimes",  FORALL(R2R, F=>FORALL(R2R, G=>equals( R2R, Deriv(times(R2R,F,G)),  plus(R2R, times(R2R,Deriv(F),G)  ,times(R2R,F, Deriv(G) )   ) ))))
 
 //Deriv(FUN(Real,x=>Sin(x))) ---------> Deriv(Sin)????        (F=FUN(Real,vari="_x",second=Sin("_x")))
@@ -946,6 +1148,7 @@ var Vect = FUN(Nat,n=>FUN(Type, T=> Zmod(n).to(T)))
 //var GL = ALIAS("GL", FUN(Nat,n=>FUN(Type, T=> Zmod(n).to(Zmod(n).to(T) ))) )
 var GL = AXIOM("GL", Nat.to(Type.to(Type)))
 GL.notation = n=>t=>blue("\\mathrm{GL}")+"("+n+","+t+")";
+GL.fastValue = n=>t=>new GLObj(t,n)
 
 GL.Transpose = AXIOM("GL.Transpose",FORALL(Nat,dim=>FORALL(Type, T=> GL(dim,T).to(GL(dim,T))  ) ))
 GL.Transpose.notation = dim=>T=>M=>"{"+M+"}^T"
@@ -958,8 +1161,7 @@ GL.fromLists.notation = dim=>T=>L=>L;
 
 
 
-GL.get = AXIOM("GL.get",FORALL(Nat,dim=>FORALL(Type,T=>GL(dim,T).to(Zmod(dim).to(Zmod(dim).to(T))  ))  ));
-GL.get.notation = dim=>T=>M=>i=>j=>"{"+M+"}_{"+i+"}^{"+j+"}"
+
 //var GLR = GL(R)
 //Euc = Vec(R)
 //var U = AXIOM("U",Euc(3)) ; U.notation = n=>"U_{"+n+"}"
@@ -980,14 +1182,49 @@ var Vector = AXIOM("Vector", Type.to(Nat.to(Type))) ;Vector.notation = (T,y)=>n=
 var Vec=Vector;
 Vector.start = AXIOM("start",FORALL(Type, T=>Vector(T)(0))) ; Vector.start.notation= T=>"\\ "//_{"+T+"}"
 Vector.mk = AXIOM("Vec.mk", FORALL(Type, T=>FORALL(Nat, n=>T.to( Vector(T)(n)   .to(Vector(T)(succ(n)))  )  )))
-Vector.mk.notation = T=>(n,m)=>x=>rest=>"\\left["+rest+"," + x+"\\right]"//_{{"+T+"}^{"+succ(m)+"}}"
+Vector.mk.notation = T=>(n,m)=>x=>(rest,y)=>{
+    //should check if rest==start
+    return "\\begin{bmatrix}{"+rest+"}\\\\{"+x+"}\\end{bmatrix}"
+}
 Vector.start.fastValue = T=>[];
 Vector.mk.fastValue = T=>n=>x=>rest => rest.concat(x);
+
+Vector.get = AXIOM("Vget" ,FORALL(Type, T=>FORALL(Nat, dim=> Vector(T,dim).to(Zmod(dim).to(T))) ));
+Vector.get.notation = t=>dim=>vect=>index =>"{"+vect+"}_{"+index +"}";
+Vector.get.fastValue = t=>dim=>vect=>index=> vect[index];
 
 Vector.scale = AXIOM("Vector.scale",FORALL(Type, T=> FORALL(Nat, n=> T.to( Vector(T,n).to(Vector(T,n) ) )) )); Vector.scale.notation = T=>n=>a=>a
 
 GL.fromVect = AXIOM("GL.fromVect",FORALL(Nat,dim=>FORALL(Type, T=>Vec(Vec(T,dim),dim).to(GL(dim,T))    ))  );
 GL.fromVect.notation = dim=>T=>L=>L;
+GL.fromVect.fastValue = dim=>T=>L=>L;
+
+//M_row^col * V_row
+
+GL.col = AXIOM("GL.col",FORALL(Nat,dim=>FORALL(Type,T=>GL(dim,T).to(Zmod(dim).to( Vector(T,dim)  )  ))  ));
+GL.col.notation = dim=>T=>M=>i=>"{"+M+"}^{"+i+"}"
+
+GL.row = AXIOM("GL.col",FORALL(Nat,dim=>FORALL(Type,T=>GL(dim,T).to(Zmod(dim).to( Vector(T,dim)  )  ))  ));
+GL.row.notation = dim=>T=>M=>i=>"{"+M+"}_{"+i+"}"
+
+
+
+
+
+GL.fromFunc = AXIOM("GL.fromFunc", FORALL(Nat,dim=>FORALL(Type, T=> Nat.to(Nat.to(T)).to(GL(dim,T))  )  ));
+
+GL.fromFunc.fastValue = dim=>t=>f=>{
+    var result=[];
+    for(var i=0;i<=dim;i++){
+        var row=[];
+        for(var j=0;j<dim;j++){
+            row.push( f(i)(j) )
+        }
+        result.push(row)
+    }
+    return result;
+}
+
 
 
 var Proj = AXIOM("Proj",Type.to(Nat.to(Type))); Proj.notation = t=>n=> t +blue("\\mathbb{P}")+"^{"+n+"}";
@@ -1005,6 +1242,33 @@ Matrix.mk.notation = T=>dim1=>dim2=>L =>L;
 Matrix.mk.fastValue = T=>dim1=>dim2=>L=>L;
 
 
+function listJoin(y,SEPARATOR,SEPARATOR2=null){
+    var i=0;
+    var result="";
+    while(y.kind=="applied" && y.first && y.first.first && y.first.first.first && y.first.first.first.symbol == List.Next.symbol){
+        //result+=","+y.first.second.toString();
+        if(SEPARATOR2) result = listJoin(y.first.second,SEPARATOR2)  +(i==0?"":SEPARATOR)+result;
+        else result = y.first.second.toString()+(i==0?"":SEPARATOR)+result;
+        y=y.second
+        i++;
+        if(i>20) {
+            console.log("i>20")
+            return result+SEPARATOR+"...";          
+        }
+    }
+    return result;
+}
+
+Matrix.mk.notation = type=>d1=>d2=>(L,y)=>{
+    //var result="\\{" + x;
+    var result = "\\end{bmatrix}";
+    //matchFunc(y, List.Next,(null,null,null))
+    
+    result = listJoin(y,"\\\\", " & ")+result;
+     //if(y.kind=="applied" && y.first.symbol==List.End.symbol) return "\\{"+result;// return result+ "\\}"
+   // return result + y.toString() +"\\}"
+    return "\\begin{bmatrix}"+result;
+}
 
 
 
@@ -1039,21 +1303,28 @@ var U=AXIOM("U",Vector(Real)(3))
 var V=AXIOM("V",Vector(Real)(3))
 
 //dual vectors (needed?)
-var VectorT = AXIOM("Vector", Type.to(Nat.to(Type))) ;VectorT.notation = T=>n=>"{"+ T+"}_{"+n+"}"
-var VecT=VectorT;
+var VectorT = AXIOM("VectorT", Type.to(Nat.to(Type))) ;VectorT.notation = T=>n=>"{"+ T+"}^{"+n+"}"
+var VecT=Vector;
 VectorT.start = AXIOM("start",FORALL(Type, T=>VectorT(T)(0))) ; VectorT.start.notation= T=>"\\ "//_{"+T+"}"
 VectorT.mk = AXIOM("Vec.mk", FORALL(Type, T=>FORALL(Nat, n=>T.to( VectorT(T)(n)  .to(VectorT(T)(succ(n)))  )  )))
-VectorT.mk.notation = T=>(n,m)=>x=>(rest,y)=>{
-    //should check if rest==start
-    return "\\begin{bmatrix}{"+rest+"}\\\\{"+x+"}\\end{bmatrix}"
-}
+VectorT.mk.notation = T=>(n,m)=>x=>rest=>"\\left["+rest+"," + x+"\\right]"//_{{"+T+"}^{"+succ(m)+"}}"
+
 VectorT.start.fastValue = T=>[];
 VectorT.mk.fastValue = T=>n=>x=>rest => rest.concat(x);
 
-Vector.get = AXIOM("Vget" ,FORALL(Type, T=>FORALL(Nat, dim=> Vector(T,dim).to(Zmod(dim).to(T))) ));
-Vector.get.notation = t=>dim=>vect=>index =>"{"+vect+"}"+subscript(index);
-Vector.get.fastValue = t=>dim=>vect=>index=> vect[index];
+VectorT.get = AXIOM("Vget" ,FORALL(Type, T=>FORALL(Nat, dim=> VectorT(T,dim).to(Zmod(dim).to(T))) ));
+VectorT.get.notation = t=>dim=>vect=>index =>"{"+vect+"}^{"+index +"}";
+VectorT.get.fastValue = t=>dim=>vect=>index=> vect[index];
 
+//GL.get = AXIOM("GL.get",FORALL(Nat,dim=>FORALL(Type,T=>GL(dim,T).to(Zmod(dim).to(Zmod(dim).to(T))  ))  ));
+GL.get = ALIAS("GL.get", FUN(Nat,dim=>FUN(Type,T=>FUN(GL(dim,T), M=>FUN(Zmod(dim),i=>FUN(Zmod(dim),j=> 
+    Vector.get(T,dim,  GL.col(dim,T,M,j),i)
+))))))  
+GL.get2 = ALIAS("GL.get2", FUN(Nat,dim=>FUN(Type,T=>FUN(GL(dim,T), M=>FUN(Zmod(dim),i=>FUN(Zmod(dim),j=> 
+    Vector.get(T,dim,  GL.row(dim,T,M,i),j)
+))))))  
+GL.get.notation = dim=>T=>M=>i=>j=>"{"+M+"}_{"+j+"}^{"+i+"}"
+GL.get2.notation = dim=>T=>M=>i=>j=>"{"+M+"}_{"+j+"}^{"+i+"}"
 
 // U.V where U:T^n
 var Dot = ALIAS("dot", FUN(Type, T=>FUN(Nat, dim=> FUN(Vector(T,dim), X=>FUN(Vector(T,dim),Y=>sum(T , FUN(Nat, n=> times( T  , 
@@ -1078,6 +1349,11 @@ DotT.notation = type=>dim=>X=>Y=>{
     var yy = (typeof Y=="function") ? Y(index) : fill(Y)+"("+index+")"
     return ""+xx+"·"+yy+""
 }
+
+GL.times = ALIAS("GL.times", FUN(Type, T=> FUN(Nat, dim=>FUN( GL(dim,T), A=> FUN(GL(dim,T),B=> GL.fromFunc( dim,T,
+    FUN(Nat,n=>FUN(Nat, m=>
+        Dot(T,dim, GL.row(dim,T, A,Zmod.fromNat(dim,n)) , GL.col(dim,T,A,Zmod.fromNat(dim,m))    )))))))) );
+GL.times.notation = T=>dim=>A=>B=>A+""+B;
     
 
 var TraceT = AXIOM("trace",FORALL(Type, T=>FORALL(Nat,dim=>(Zmod(dim).to(Zmod(dim).to(T))).to(T)) ) ); 
@@ -1125,14 +1401,15 @@ var ID = AXIOM("ID",FORALL(Nat, n=>( Euc(n).to(Real)  ).to( Euc(n).to(Real)    )
 
 //PDeriv(3)(2) = d/dx_2 f( x )
 var PDeriv = AXIOM("PDeriv", FORALL(Type, T=>FORALL(Nat, n=>Zmod(n).to(Euc(n).to(T).to(Euc(n).to(T))))))
-PDeriv.notation = t=>dim=>i=>(f,y)=>
+PDeriv.notation = t=>dim=>i=>(f,y)=>z=>
     {
 
         if (y && y.kind=="fun"){
-            return (x,y)=>z=>"\\frac{\\partial "+fill(y.second)+"}{\\partial "+y.vari+"}|_{"+y.vari+"="+z+"}"
+                var vari=new C(getNewVariName(),y.first)
+                return "\\frac{\\partial "+fill(y.appliedTo(vari).toString())+"}{\\partial "+vari+subscript(i)+  "}|_{"+vari+"="+fill(z.toString())+"}" 
         }else{
             var v = getNewVariName() 
-            return "\\partial_{"+i+"}" + noblank(f);////\\left["+fill(x)+"\\right]" //z=?
+            return "\\partial_{"+i+"}" + noblank(f) +" "+ noblankBracket(z);////\\left["+fill(x)+"\\right]" //z=?
             //return "\\frac{\\partial}{\\partial "+v+"}"+fill(x)+"("+v+")|_{"+v+"="+z+"}" 
             //return "\\frac{\\partial "+fill(x)+"("+v+")}{\\partial "+v+"}|_{"+v+"="+z+"}" 
             //return "\\partial" + x;
@@ -1143,7 +1420,7 @@ var VDeriv = AXIOM("VDeriv", FORALL(Nat, dim=>Vector( Euc(dim).to(Real) , dim ) 
 
 var E3=Euc(3)
 E3.PDeriv = PDeriv(Real,3)
-//sum(Deriv(Sin(x)+Cos(x))) = Deriv(Sin(x))+Deriv(Cos(x))
+//sum(Deriv(Sin(x)+R.cos(x))) = Deriv(Sin(x))+Deriv(R.cos(x))
 /*var Div =  FUN(Nat, dim=> sum(FF(dim).to(FF(dim)) ,FUN(Nat, i=>Compose( FF(dim), PDeriv(dim,i) , ID(dim)  ))  , dim   ) ) 
 var Laplacian = FUN(Nat, dim=> sum(FF(dim).to(FF(dim)) ,FUN(Nat, i=>
   Compose( FF(dim), PDeriv(dim,i), Compose( FF(dim), PDeriv(dim,i) , ID(dim)  ) )
@@ -1187,10 +1464,7 @@ var Laplacian = FUN(Nat, dim=> sum(FF(dim).to(FF(dim)) ,FUN(Nat, i=>
 
 
 
-  //GradT ( F_n(x_3) )
-//var GradT = AXIOM("Grad" , FORALL(Type, T=>FORALL(Nat, dim=>   (Euc(dim).to(T) ).to( Vector( Euc(dim).to(T)    )(dim)   )     )));
-var GradT = AXIOM("Grad" , FORALL(Type, T=>FORALL(Nat, dim=>   (Euc(dim).to(T) ).to( Euc(dim).to( Vector(T   )(dim)   )     ))));
-GradT.notation = t=>dim=>"\\nabla";
+
 
 
 /*LaplacianT = ALIAS("Laplacian", FUN(Type, T=>FUN(Nat, dim=> sum(( Euc(dim).to(T)   ).to( Euc(dim).to(T)    ) ,FUN(Nat, i=>
@@ -1341,8 +1615,8 @@ function SUB(x,y){
 
 //----------------------------COMPLEX RULES-----------------------
 
-var realPart = AXIOM("Re", FORALL(Type,F=>Complex(F).to(F))); realPart.notation = type=>x=>red("Re")/*+subscript(type)*/+""+x+""
-var imPart = AXIOM("Im", FORALL(Type,F=>Complex(F).to(F))); imPart.notation = type=>x=>red("Im")/*+subscript(type)*/+""+x+""
+var realPart = AXIOM("Re", FORALL(Type,F=>Complex(F).to(F))); realPart.notation = type=>x=>red("Re")/*+subscript(type)*/+""+x+""; realPart.fastValue=type=>x=>x[1];
+var imPart = AXIOM("Im", FORALL(Type,F=>Complex(F).to(F))); imPart.notation = type=>x=>red("Im")/*+subscript(type)*/+""+x+""; imPart.fastValue=type=>x=>x[0];
 var mod = AXIOM("modC", FORALL(Type,F=>Complex(F).to(F))); mod.notation = type=>x=>"|"+x+"|";
 var norm = AXIOM("normC", FORALL(Type,F=>Complex(F).to(F))); mod.notation = type=>x=>"|"+x+"|^2";
 
@@ -1376,8 +1650,8 @@ Eisen.minusOmega = Eisen.mk(Int,0,-1)
 
 ComplexR = Complex(Real)
 ComplexR.Exp =  FUN(Complex(Real), z=> ComplexMk(Real,
-     Real.times( Real.Exp(realPart(Real,z) ), Cos(imPart(Real,z))  ) ,
-     Real.times( Real.Exp(realPart(Real,z) ), Sin(imPart(Real,z))  )
+     Real.times( Real.Exp(realPart(Real,z) ), R.cos(imPart(Real,z))  ) ,
+     Real.times( Real.Exp(realPart(Real,z) ), Real.sin(imPart(Real,z))  )
 ))  
 
 //var NatList = AXIOM("NatList",)
@@ -1460,6 +1734,10 @@ var distribLM =  AXIOM("distribL",FORALL(Type,F=>FORALL(F,x=>FORALL(F,y=>FORALL(
 var distribRM =  AXIOM("distribR",FORALL(Type,F=>FORALL(F,x=>FORALL(F,y=>FORALL(F,z=>equals(
         F,times(F,x,sub(F,y,z)) ,    sub(F,times(F,x,y),times(F,x,z)) ))))))
 
+//double
+//We need to always have a 2 in this ring.
+//var double = AXIOM("double",FORALL(Type, T=>FORALL(T,A=>equals(plus(T,A,A), times(T,CastTo(A,2),A )     ))))
+
 //---
 
 //topology
@@ -1500,7 +1778,7 @@ var qK = FUN( Type, F=>FUN( F, re=>FUN(F , imI=>FUN(F, imJ=>FUN(F, imK=>new Rule
 
 //-----------quaternion
 Quaternion.plus = AXIOM("qplus" ,Quaternion.to(Quaternion.to(Quaternion)) )
-Quaternion.fastValue=x=>"H["+x+"]"
+Quaternion.fastValue=x=> new QuaternionObj(x)//"H["+x+"]"
 var QuaternionPlus = AXIOM("QPlus",
     FORALL(Type,T=>
         FORALL(T,Ar=>FORALL(T,Ai=>FORALL(T,Aj=>FORALL(T,Ak=> 
@@ -1557,16 +1835,15 @@ Sur.empty.fastValue="∅"
 //A > {A|B} > B
 
 
-//HOMOMORPHISM of binary operator
-var HomBin =  FUN(Type, A=>FUN(Type, B=>FUN( A.to(A.to(A)), binA=> FUN( B.to(B.to(B)), binB=>FUN( A.to(B), f=>FUN(A, x=>FUN(A,y=>
+//HOMOMORPHISM of binary operators (propositional functions)
+var HomBin = ALIAS("HomBin",  FUN(Type, A=>FUN(Type, B=>FUN( A.to(A.to(A)), binA=> FUN( B.to(B.to(B)), binB=>FUN( A.to(B), f=>FORALL(A, x=>FORALL(A,y=>
     equals(B, binB( f(x) , f(y) ) , f( binA( x,y)  )) 
- )))))))
+ ))))))) );
+ HomBin.notation = A=>B=>binA=>binB=>f=>""+fill(binA)+"{\\cong}"+subscript(fill(f))+" "+fill(binB);
+//HomBin(R,R)(times(R),plus(R),R.Log)   //log(a)+log(b) = log(a*b)
 
-HomBin.prop =  FORALL(Type, A=>FORALL(Type,  B=>FORALL( A.to(A.to(A)), binA=> FORALL( B.to(B.to(B)), binB=>FORALL( A.to(B) ,f=>FORALL(A,x=>FORALL(A,y=>
-    equals(B, binB( f(x) , f(y) ) , f( binA( x,y)  )) 
- )))))))
-//HomBin( Nat, Rat, plus(Nat), plus(Rat) , FUN(x=>Rat.mk(x,1) )
-var HomAdd =  FORALL(Type, A=>FORALL(Type, B=> FORALL( A.to(B) ,f=>FUN(A, x=>FUN(A,y=>
+//HomBin( Nat, Rat, plus(Nat), plus(Rat) , FUN(Nat,x=>Rat.mk(Int.mk(x,0),1) )
+var HomAdd =  FUN(Type, A=>FUN(Type, B=> FUN( A.to(B) ,f=>FORALL(A, x=>FORALL(A,y=>
     equals(B, plus(B, f(x) , f(y) ) , f( plus(A, x,y)  ))
 )))))
 
@@ -1766,6 +2043,7 @@ g(mu,nu)(x)
 //-------------------------OR------------------------------------
 
 Prop.or  =  AXIOM("propOr",Prop.to(Prop.to(Prop)));     Prop.or.notation  = x=>y=>"("+x+"∨"+y+")" ;Prop.or.fastValue = a=>b=>a || b;
+OR = (A,B)=>Prop.or(A,B);
 Type.sum =  AXIOM("typeSum",Type.to(Type.to(Type)));    Type.sum.notation = x=>y=>"("+x+"+"+y+")"
 
 //left (B) (x:A) : sumType(A,B)
@@ -1773,12 +2051,13 @@ Type.sum =  AXIOM("typeSum",Type.to(Type.to(Type)));    Type.sum.notation = x=>y
 //(left) :    A->Sum(A,B)
 //(right):    B->Sum(A,B)
 
-Type.left  =  AXIOM("left", FORALL(Type, A=>FORALL(Type, B =>A.to(Type.sum(A)(B)))))
+Type.left  =  AXIOM("left", FORALL(Type, A=>FORALL(Type, B =>A.to(Type.sum(A)(B)))));  Type.left.notation = A=>B=>C=>"("+C+")"+subscript(A+"\\rightarrow"+"("+A+"∨"+B+")" )
 Prop.left  =  AXIOM("leftOr",FORALL(Prop, A=>FORALL(Prop, B =>A.to(Prop.or(A)(B))) )); Prop.left.notation = A=>B=>C=>"("+C+")"+subscript(A+"\\rightarrow"+"("+A+"∨"+B+")" )
-Type.right =  AXIOM("right", FORALL(Type, A=>FORALL(Type, B =>B.to(Type.sum(A)(B)))))
+Type.right =  AXIOM("right", FORALL(Type, A=>FORALL(Type, B =>B.to(Type.sum(A)(B))))); Type.right.notation = A=>B=>C=>"("+C+")"+subscript(B+"\\rightarrow"+"("+A+"∨"+B+")" )
 Prop.right =  AXIOM("rightOr",FORALL(Prop, A=>FORALL(Prop, B =>B.to(Prop.or(A)(B))) )); Prop.right.notation = A=>B=>C=>"("+C+")"+subscript(B+"\\rightarrow"+"("+A+"∨"+B+")" )
 
-Prop.not = ALIAS("not" ,FUN(Prop, x=>x.to(False)) ); Prop.not.notation = x=> "¬("+x+")"; Prop.not.fastValue = x=>!x;
+Prop.not = ALIAS("not" ,FUN(Prop, x=>x.to(False)) ); Prop.not.notation = x=> "¬{"+x+"}"; Prop.not.fastValue = x=>!x;
+NOT = Prop.not;
 //AXIOM("not",Prop.to(Prop)); 
 
 
@@ -1786,16 +2065,44 @@ Prop.not = ALIAS("not" ,FUN(Prop, x=>x.to(False)) ); Prop.not.notation = x=> "¬
 //------------------------AND------------------------
 
 Prop.and  = AXIOM("prodType",Prop.to(Prop.to(Prop))); Prop.and.notation = x=>y=>"("+x+"∧"+y+")"; Prop.and.fastValue = a=>b=>a && b;
+AND = (A,B)=>Prop.and(A,B);
 Type.prod = AXIOM("prodType",Type.to(Type.to(Type))); Type.prod.notation  = x=>y=>"("+x+"×"+y+")"
 
 //(pairs) (What is pair of propositions called?)
-Prop.pair= AXIOM("propPair", FORALL(Prop,A=>FORALL(Prop,B=>A.to(B.to(Prop.and(A,B)))))); Prop.pair.notation = a=>b=>x=>y=> "("+x+","+y+")"
-//Prop.First
-//Prop.Second
+Prop.pair= AXIOM("propPair", FORALL(Prop,A=>FORALL(Prop,B=>A.to(B.to(Prop.and(A,B))))));       Prop.pair.notation = a=>b=>x=>y=> "("+x+","+y+")"
+Prop.first  =AXIOM("propFirst",   FORALL(Prop,A=>FORALL(Prop,B=>Prop.and(A)(B).to(A))));      Prop.first.notation = a=>b=>x=>"{"+x+"}"+subscript("L")
+Prop.second =AXIOM("propSecond",  FORALL(Prop,A=>FORALL(Prop,B=>Prop.and(A)(B).to(B)) ));     Prop.second.notation = a=>b=>x=>"{"+x+"}"+subscript("R")
+PSECOND = P=>Prop.second(P.type.first.second,P.type.second,P);
+PFIRST = P=>Prop.first(P.type.first.second,P.type.second,P);
 
-Type.pair = AXIOM("prodMk", FORALL(Type,A=>FORALL(Type,B=>A.to(B.to(Type.prod(A,B)))))); Type.pair.notation = a=>b=>x=>y=> "("+x+","+y+")"//+subscript(a+"×"+b)
-Type.First  =AXIOM("first",   FORALL(Type,A=>FORALL(Type,B=>Type.prod(A)(B).to(A))));      Type.First.notation = a=>b=>x=>"{"+x+"}"+subscript("L")
-Type.Second =AXIOM("second",  FORALL(Type,A=>FORALL(Type,B=>Type.prod(A)(B).to(B)) ));     Type.Second.notation = a=>b=>x=>"{"+x+"}"+subscript("R")
+Type.pair = AXIOM("prodMk", FORALL(Type,A=>FORALL(Type,B=>A.to(B.to(Type.prod(A,B))))));       Type.pair.notation = a=>b=>x=>y=> "("+x+","+y+")"//+subscript(a+"×"+b)
+Type.first  =AXIOM("prodFirst",   FORALL(Type,A=>FORALL(Type,B=>Type.prod(A)(B).to(A))));      Type.first.notation = a=>b=>x=>"{"+x+"}"+subscript("L")
+Type.second =AXIOM("prodSecond",  FORALL(Type,A=>FORALL(Type,B=>Type.prod(A)(B).to(B)) ));     Type.second.notation = a=>b=>x=>"{"+x+"}"+subscript("R")
+
+function PAIR(a,b){
+    return a.type.type.pair(a.type,b.type,a,b );
+}
+
+Prop.case=AXIOM("Case", FORALL(Prop,A=>FORALL(Prop,B=>FORALL(Prop,C=>A.to(C).to(B.to(C).to(Prop.or(A,B).to(C)))))))
+Prop.case2=AXIOM("Case", FORALL(Prop,A=>FORALL(Prop,B=>FORALL(Prop,C=>Prop.and( A.to(C),B.to(C)).to(Prop.or(A,B).to(C))))))
+
+
+Prop.LeftCaseReduct = AXIOM("LeftCaseReduct", FORALL(Prop,A=>FORALL(Prop,B=>FORALL(Prop,C=>  FORALL(A.to(C), f=>FORALL(B.to(C), g=> FORALL(A, a=>
+    Prop.equals(C, Prop.case(A,B,C,f,g,Prop.left(A,B,a)),f(a)) )))) )))
+Prop.RightCaseReduct = AXIOM("RightCaseReduct", FORALL(Prop,A=>FORALL(Prop,B=>FORALL(Prop,C=>  FORALL(A.to(C), f=>FORALL(B.to(C), g=> FORALL(B, b=>
+        Prop.equals(C, Prop.case(A,B,C,f,g,Prop.right(A,B,b)),g(b)) )))) )))
+Prop.case.notation = A=>B=>C=>f=>g=>"\\begin{cases}"+f+"\\\\"+g+"\\end{cases}";
+Prop.case2.notation = A=>B=>C=>f=>g=>"\\begin{cases}"+f+"\\\\"+g+"\\end{cases}";
+
+Type.case=AXIOM("TypeCase", FORALL(Type,A=>FORALL(Type,B=>FORALL(Type,C=>A.to(C).to(B.to(C).to(Type.sum(A,B).to(C)))))))
+Type.case.notation = A=>B=>C=>f=>g=>"\\begin{cases}"+f+"\\\\"+g+"\\end{cases}";
+
+//Type.case(Nat,Int,Nat,FUN(Nat,x=>Nat.zero), FUN(Int,x=>Nat.succ(Nat.zero) ) ,Type.left(Nat,Int,3) )
+
+Type.LeftCaseReduct = AXIOM("LeftTypeCaseReduct", FORALL(Type,A=>FORALL(Type,B=>FORALL(Type,C=> 
+    FORALL(A.to(C), f=>FORALL(B.to(C), g=> FORALL(A, a=>
+    equals(C,Type.case(A,B,C,f,g,Type.left(A,B,a)), f(a)) )))) )) )
+
 
 //var option=AXIOM("option", FORALL(Type, T1=> FORALL(Type, T2=> Prop.to( Type.sum(T1, T2) )  )))
 var select=AXIOM("select", FORALL(Type, T=>T.to(T.to(Prop.to(T)))  ))
@@ -1825,9 +2132,10 @@ isPrime.fastValue = p=>{
 //----------------------Complex functions-----------------
 //var C=Complex
 //Real.Sin
-var CR=Complex(Real);CR.notation = blue("\\mathbb{C}");
+//var CR=Complex(Real);
+var CR=ALIAS("CR", Complex(Real));CR.notation = blue("\\mathbb{C}"); CR.fastValue = new ComplexObj(new RealObj());
 var HR=Quaternion(Real);HR.notation = blue("\\mathbb{H}");
-var OR=Octonion(Real);OR.notation = blue("\\mathbb{O}");
+var OcR=Octonion(Real);OR.notation = blue("\\mathbb{O}");
 //ALIAS(blue("\\mathbb{C}"),Complex(Real));
 CR.mk = Complex.mk(Real)
 
@@ -1845,11 +2153,32 @@ var CTimes = z=>w=> [z[0]*w[0]-z[1]*w[1], z[0]*w[1]+z[1]*w[0] ]
 var CR2CR = CR.to(CR);
 
 CR.Id = AXIOM("CId",CR.to(CR)); CR.Id.fastValue = z=>z;
-CR.Sin = AXIOM("CSin",CR.to(CR) );CR.Sin.fastValue = z=>[Math.sin(z[0])*Math.cosh(z[1]), Math.cos(z[0])*Math.sinh(z[1])]
-CR.Cos = AXIOM("CCos",CR.to(CR) );CR.Cos.fastValue = z=>[Math.cos(z[0])*Math.cosh(z[1]), -Math.sin(z[0])*Math.sinh(z[1])]
-CR.Tan = AXIOM("CTan",CR.to(CR) );CR.Tan.fastValue = z=>{ var d=Math.cos(2*z[0])+Math.cosh(2*z[0]);  return [Math.sin(2*z[0])/d,   Math.sinh(2*z[1])/d]}
-CR.Exp = AXIOM("CExp",CR.to(CR) );CR.Exp.fastValue = z=>{ var e=Math.exp(z[0]); return [e*Math.cos(z[1]),e* Math.sin(z[1])]}
+CR.sin = sin(CR)
+CR.cos = cos(CR)
+CR.tan = tan(CR)
+CR.exp = Exp(CR) //see below for definition
+//CR.Tan = AXIOM("CTan",CR.to(CR) );CR.Tan.fastValue = z=>{ var d=Math.cos(2*z[0])+Math.cosh(2*z[0]);  return [Math.sin(2*z[0])/d,   Math.sinh(2*z[1])/d]}
+//CR.Exp = AXIOM("CExp",CR.to(CR) );CR.Exp.fastValue = z=>{ var e=Math.exp(z[0]); return [e*Math.cos(z[1]),e* Math.sin(z[1])]}
 CR.Sqrt = AXIOM("CSqrt",CR.to(CR) );CR.Sqrt.fastValue = z=>{ var r=Math.pow(z[0]**2+z[1]**2,0.25);var theta = Math.atan2(z[1],z[0]); return   [Math.cos(theta/2), Math.sin(theta/2)]}
+
+//try to define complex reals as series of complex rationals
+CRat=Complex(Rat)
+CR.mk2=AXIOM("CR.mk2", Nat.to(Complex(Rat)).to(CR) );
+//toComplexCauchy = AXIOM("toComplexCauchy", CR.to(Nat.to(CRat)));
+toComplexCauchy = ALIAS("toComplexCauchy", FUN(CR,z=>FUN(Nat,n=>Complex.mk(Rat,toCauchy(realPart(R,z),n), toCauchy(imPart(R,z),n)  ) )));
+CR.Exp = ALIAS("CR.Exp",FUN(CR,x=> CR.mk2(FUN(Nat, n=> divide(CRat, power(CRat, plus(CRat, Complex.mk(Rat,Rat.mk(IntMk(n,0),1),Rat.zero)  , 
+ toComplexCauchy(x)(n)    ),n ), Complex.mk(Rat,Rat.mk( IntMk(Nat.power(n,n),0) ,1) ,Rat.zero)   ) )) )); CR.Exp.notation = x=>"e^{"+x+"}";
+
+ //toCauchy(Rat, z:Completion(Rat), n:Nat):Rat  OR  toCauchy(Real, z:Real, n:Nat):CompetionOf(Real)=Rat
+ //toCauchy(Complex(Rat), z:Completion(Complex(Rat))), ...)
+ //Complex.mk(R,  ...toCauchy()    )
+//Completion(T)= T=> MATCH(T,Rat,Real , MATCH(T,Complex(Rat),Complex(Real)),null)
+
+AXIOM("Completion",Type.to(Type));
+//R = ALIAS("R",Completion(Rat))
+//Completion(Complex(Rat))=CR, Complex(Completion(Rat)) = Completion(Complex(Rat))
+
+
 
 //****cheats****
 //FUN(CR,z=>iter(CR, FUN(CR, x=> plus(CR,square(CR,x),z) ) , z , 10) ) (Complex.mk(Real,3,4))
@@ -1872,8 +2201,8 @@ var zeta = ALIAS("zeta", FUN(CR,z => divide(CR, deta(z), sub(CR, CR.one   ,  CR.
 
 //Functional Derivative:
 
-var DFunc = AXIOM("DFunc" , (R2R.to(R2R)).to(R2R.to(R))  )
-DFunc.notation = a=>f=>x=>"\\frac{\\delta}{\\delta "+f+"("+x+")}"+a+"("+f+")("+x+")";
+var DFunc = AXIOM("DFunc" , (R2R.to(R2R)).to(R.to(R2R.to(R2R))  ) )
+DFunc.notation = a=>x=>f=>y=>"\\frac{\\delta}{\\delta "+f+"("+x+")}"+a+"("+f+")("+y+")";
 
 
 var subst = AXIOM("subst", FORALL(Type,N=>FORALL(N,a=>FORALL(N,b=>FORALL(N.to(Prop),F=> 
@@ -2074,7 +2403,11 @@ function LOOP(f, n , m){
 var instruct=AXIOM("instruct",Type)
 var mystring=AXIOM("string",Type); 
 mystring.fromNat =AXIOM("mystring.fromNat",Nat.to(mystring)); mystring.fromNat.fastValue = n=>n.toString(); 
-mystring.fromNat.notation=x=>"''"+x+"''";
+mystring.fromNat.notation=x=>normal("“"+x+"”");
+mystring.fromRat =AXIOM("mystring.fromNat",Rat.to(mystring)); mystring.fromRat.fastValue = n=>n.toString(); 
+mystring.fromRat.notation=(x,y)=>normal("“"+y.first.second+"/"+y.second+"”");
+
+
 var println=AXIOM("println",mystring.to(instruct)); println.fastValue = s=>{ print(s); }
 
 mystring.concat = AXIOM("concat", mystring.to(mystring.to(mystring)))
@@ -2121,12 +2454,16 @@ var MultiArray=AXIOM("Array", FORALL(Type,T=>List(Nat).to(Type) ) );
 MultiArray.notation= T=>L=>{
     return T+"^{"+L+"}";
 }
+MultiArray.fastValue = t=>s=>new MultiArrayObj(t,s);
 MultiArray.fromList = AXIOM("ArrayfromList",FORALL(Type,T=>FORALL(List(Nat),shape=> List(T).to(MultiArray(T,shape)) )))
 MultiArray.fromList.notation = t=>shape=>list=> "{"+list+"}"+subscript(shape);
 MultiArray.fromList.fastValue = t=>shape=>list=>{
     return list;
     //return {shape:shape,list:list};
 };
+
+
+
 
 function arrayProd(L){
     var r=1;
@@ -2193,8 +2530,8 @@ MultiArray.get(Nat, LIST(2,2), LIST(0,0), a )
 */
 
 //array functions
-MultiArray.Tanh = AXIOM("NDTanh",FORALL(Type,T=>FORALL(List(Nat),shape=> MultiArray(T,shape).to(MultiArray(T,shape)) )));
-MultiArray.Tanh.fastValue = T=>shape=>input=>applyToList(input,Math.tanh)
+//MultiArray.Tanh = AXIOM("NDTanh",FORALL(Type,T=>FORALL(List(Nat),shape=> MultiArray(T,shape).to(MultiArray(T,shape)) )));
+//MultiArray.Tanh.fastValue = T=>shape=>input=>applyToList(input,Math.tanh)
 MultiArray.Random =AXIOM("NDRandom", FORALL(Type,T=>FORALL(List(Nat),shape=> MultiArray(T,shape))));
 MultiArray.Random.fastValue = T=>shape=>{
     var input=new Array(arrayProd(shape));
@@ -2262,8 +2599,28 @@ function reverseArray(i,index,shape,L,result,offset){ //[[[1,2],[4,5]], [[5,6],[
 //NDReverse(Nat,LIST(2,2,2),2, MultiArray.fromList(Nat,LIST(2,2,2),toList([1,2,3,4,5,6,7,8],Nat) ))
 //Vector.fromList = AXIOM("VfromL", FORALL(Type, T=>FORALL(Nat, n=>FORALL(List(T), L=>Vector(T,List.Length(T,L) ) ) ) )
 Vector.fromList = AXIOM("VfromL", FORALL(Type, T=>FORALL(Nat, n=>FORALL(List(T), L=>Vector(T,n ) ) ) ))
-Vector.fromList.notation = t=>n=>L=>L;
+Vector.fromList.notation = t=>n=>(L,y)=>{
+    return "\\begin{bmatrix}" + (y?listJoin(y,"\\\\"):" ")+"\\end{bmatrix}"
+};
 Vector.fromList.fastValue = t=>n=>L=>L;
+
+VectorT.fromList = AXIOM("VTfromL", FORALL(Type, T=>FORALL(Nat, n=>FORALL(List(T), L=>VectorT(T,n ) ) ) ))
+VectorT.fromList.notation = t=>n=>(L,y)=>{
+    return "\\begin{bmatrix}" + (y?listJoin(y," & "):" ")+"\\end{bmatrix}"
+};
+VectorT.fromList.fastValue = t=>n=>L=>L;
+
+  //GradT ( F_n(x_3) )
+//var GradT = AXIOM("Grad" , FORALL(Type, T=>FORALL(Nat, dim=>   (Euc(dim).to(T) ).to( Vector( Euc(dim).to(T)    )(dim)   )     )));
+//var GradT = AXIOM("Grad" , FORALL(Type, T=>FORALL(Nat, dim=>   (Euc(dim).to(T) ).to( Euc(dim).to( Vector(T   )(dim)   )     ))));
+//GradT = ALIAS("Grad", FUN(Type, T=>FUN(Nat, dim=> FUN(Euc(dim).to(T),phi=>  Vector.fromList(R , dim,  List.fromFunc(R, FUN(Nat, n=>PDeriv(R,dim,n,phi) )))))));
+
+GradT = ALIAS("Grad", FUN(Type,T=>FUN(Nat, dim=> FUN(  Vector(R,dim).to(T), phi=>
+    Vector.fromList(phi.type,dim,
+    List.fromFunc(phi.type, FUN(Nat, n=>PDeriv(T,dim,Zmod.fromNat(dim,n),phi) ), dim)
+)))));
+
+GradT.notation = t=>dim=>"\\nabla";
 
 //group theory
 var Aut = AXIOM("Aut", Type.to(Type));
@@ -2330,3 +2687,7 @@ Rand.fastValue = _=>Math.random()
 
 //var GrassmannNumber =AXIOM("Grassmann",Type)
 //var GrassmannNumber.mk
+
+
+
+var ErrorFunc = AXIOM("ErrorFunc", ErrorObject.to(ErrorObject)); ErrorFunc.notation = x=>red(normal("⚠"))+"\\boxed{"+x+"}";

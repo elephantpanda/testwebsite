@@ -33,6 +33,13 @@ Iteration \(f^4(x) = f(f(f(f(x)))) = (fofofof)(x)\):
 <script>
     createInput("iter(Rat, FUN(Rat, n=>Rat.plus(n,3) ),5)(100)")
 </script>
+<br>
+For example computing the square root of 2:
+
+<script>
+    createInput(`iter(Rat, FUN(Rat, n=>Rat.divide(Rat.plus(n,Rat.divide(2,n) ),2) ),3)(1)`)
+</script>
+
 $$\sqrt{1}$$
 </div>
 </html>

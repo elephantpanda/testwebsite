@@ -17,33 +17,33 @@ This is basically multi-dimensional data. So include large \(n\times m \times o 
 <br>
 Perhaps a multi-dimensional array type may be defined as:
 <script>
-    createInput(`MultiArray(Real,LIST(3,4,5))`)
+    createInput(`MultiArray(Real,[3,4,5])`)
 </script>
 
 And we would set data by:
 
 <script>
-    createInput("MultiArray.fromList(Real,LIST(2,2), LIST(Type.id(Real)(1),2,3,4) )")
+    createInput("MultiArray.fromList(Real,[2,2], [Type.id(Real)(1),2,3,4] )")
 </script>
 
 We would be able to display these tensors in the canvas
 <!---
 <script>
-    createInput(`a= MultiArray.fromFunc(Real, LIST(10,10,3), 
+    createInput(`a= MultiArray.fromFunc(Real, [10,10,3], 
 FUN(Real, x=>FUN(Real, y=>FUN(Real, c=>
 Real.Step( Real.sub(Real.plus(Real.power(x,2), Real.power(y,2)), 25) ) ))) )`)
 </script>
 
 Or perhaps 
 <script>
-    createInput(`a= MultiArray.fromFuncV(Real, LIST(10,10,3), 
+    createInput(`a= MultiArray.fromFuncV(Real, [10,10,3], 
 FUN(Vector(Real,3), p=> 
 Real.Step( Real.sub(Real.plus(Real.power(Vector.get(Real,3,Zmod.mk(3,0),p),2  ), Real.power(Vector.get(Real,3,Zmod.mk(3,1),p) ,2)), 25) ) )) `)
 </script>
 
 Or perhaps -->
 <script>
-    createInput(`a= MultiArray.fromFuncL(Real, LIST(3,50,50), 
+    createInput(`a= MultiArray.fromFuncL(Real, [3,50,50], 
 FUN(List(Real), p=> 
 Real.Step( Real.sub(Real.plus(Real.power(List.get(Real,1,p),2  ), Real.power(List.get(Real,2,p) ,2)), 2500) ) )) ;
 plotBitmap(3,50,50,a.float())`)

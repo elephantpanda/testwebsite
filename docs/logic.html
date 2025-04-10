@@ -54,7 +54,7 @@ A simple example. Find a proof that forall x show that <span class="eq2">x or Tr
 
 <br><br>
 
-An example of a proof of the chaining rule:
+An example of a proof of the chaining rule (Prop.compose):
 
 <script>createInput(`FUN(Prop,a=>FUN(Prop,b=>FUN(Prop,c=>FUN(a.to(b),f=>FUN(b.to(c),g=>FUN(a,x=>g(f(x)))))))).type`)</script>
 
@@ -69,6 +69,33 @@ FUN(Prop,x=>FUN(True.to(x),h=>h(True.proof))).type;
 This should technically work, but the definitional equality is not simplifying enough:
 
 <script>createInput(`Prop.id(Prop.not(Prop.not(True)),  FUN(True.to(False),h=>h(True.proof)) )`)</script>
+(Note in general it is not possible to prove that <span class="eq2">Not Not x = x</span> for any x in constructive type theory unless we assume law of excluded middle.  )
+
+<h3>First/Second</h3>
+We can use the first and second elements of a pair to prove things like:
+
+<script>createInput(`FUN(Prop, A=>FUN(Prop, B=> FUN( Prop.and(A,B), P=> Prop.first(A,B,P) ) ) ).type`)</script>
+<br>
+Also:
+
+<script>createInput(`FUN(Prop, A=>FUN(Prop, B=> FUN( Prop.and(A,B), P=> Prop.pair(B,A,Prop.second(A,B,P),
+ Prop.first(A,B,P) ) ) ) ).type`)</script>
+<br>
+We can use left and right to prove:
+
+<script>createInput(`FUN(Prop, A=>FUN(Prop, B=> FUN( A, P=> Prop.left(A,B,P) ) ) ).type`)</script>
+
+<h3>Cases</h3>
+
+<script>createInput(`FUN(Prop,A=>FUN(Prop,B=>Prop.case(A,B,Prop.or(B,A), FUN(A,a=>Prop.right(B,A,a)) ,
+ FUN(B,b=>Prop.left(B,A,b))   ) )).type`)</script>
+
+<script>createInput(`Prop.case`)</script>
+
+<br>
+Approximately the not rule for AND and OR:
+
+<script>createInput(`FUN(Prop, A=> FUN(Prop, B=> Prop.case(A,B,False) ) ).type`)</script>
 
 </div>
 </body>

@@ -4,6 +4,8 @@ var USE_FASTNAT=true
 var DEBUG_MODE=true
 var SHOW_LONG_NATS=true
 var DEBUG=!true
+
+var TYPE_CHECKING=true
 //Not working:: R.times(R.plus(3,7),R.plus(4,5))
 //Type theory rules
 // x:A, f:A->B              f (x) : B
@@ -38,7 +40,14 @@ function createInput(text ,element){
         else
     document.write(s)
     //go(inputID,true)
-    setTimeout(()=>updateAll(),500 )
+    //setTimeout(()=>updateAll(),500 )
+    var cellId=inputID;
+    setTimeout(()=>updateCell(cellId),500)
+}
+
+function updateCell(id){
+    //console.log("Update cell "+id)
+    go(id,true);
 }
 
 function updateAll(){
@@ -108,6 +117,9 @@ function fill(f){
 function noblank(f){
     return f=="■"?"":f;
 }
+function noblankBracket(f){
+    return f=="■"?"":"("+f+")";
+}
 
 //not good!
 function showVariables(){
@@ -126,12 +138,12 @@ function showVariables(){
 
 var currentID = 0;
 
-function go(ID,clear){
+function go(ID0,clear){
     tempNum=0
-    currentID= ID
-    output=document.getElementById("output"+ID)
+    currentID= ID0
+    output=document.getElementById("output"+ID0)
     if(clear) output.innerHTML="";
-    var text=document.getElementById("example"+ID).value
+    var text=document.getElementById("example"+ID0).value
     text=text.replace("∀","FORALL")
     
     lines = text.split(";")
@@ -163,7 +175,7 @@ function go(ID,clear){
         
     }
 
-    results[ID] = result;
+    results[ID0] = result;
 
     if(window.MathJax!=undefined)
     MathJax.typesetPromise([output]).then(() => {
@@ -209,9 +221,9 @@ function toList(list ,type=null){
             type=L0.type
         }
     }
-    var L=LEnd(type)
+    var L=List.End(type)
     for(var i=0;i<list.length;i++){
-        L=LNext(type, list[i],L)
+        L=List.Next(type, list[i],L)
     }
     return L
 }
@@ -227,9 +239,9 @@ function toFastList(list, type=null){
         if(typeof L0 =='number') L0 = guessNumberType(L0)  
         type=L0.type
     }
-    var L=LEnd(type)
+    var L=List.End(type)
     for(var i=0;i<list.length;i++){
-        L=LNext(type, list[i],L)
+        L=List.Next(type, list[i],L)
     }
     return L
 }*/
@@ -242,11 +254,15 @@ function VECT(...args){
     var list = toList(args);
     return Vector.fromList(list.type.second, args.length, list)
 }
+function VECTT(...args){
+    var list = toList(args);
+    return VectorT.fromList(list.type.second, args.length, list)
+}
 
 /*
 function toList(result){
 
-    var L=LEnd
+    var L=List.End
     
     for(var i=0;i<result.length;i++){
         var K=eval(result[i])
@@ -464,6 +480,8 @@ var Type=new C("Type",Type1) ; Type.notation = orange("\\mathscr{T}");
 var ErrorMessage =new C(red("ERROR"),Type)
 var ErrorObject = new C("⚠",ErrorMessage); ErrorObject.notation=red("⚠");
 
+
+
 var Prop= new C("Prop",Type) ;Prop.notation=pink("Prop");
 
 var wilds={}
@@ -563,7 +581,7 @@ class Applied {
             return (this.second.kind == "applied" ? "(" + secondString + ")" : secondString + " ") + this.first
         else {
             if (this.first.kind != "fun")
-                return firstString + "(" + fill(secondString) + ")"
+                return firstString + BRACKET(this.second);// "(" + fill(secondString) + ")"
 
             else
                 return "(" + firstString + ")(" + fill(secondString) + ")"
@@ -573,6 +591,13 @@ class Applied {
     inputForm(){
         return this.first.inputForm() + "(" + this.second.inputForm() + ")"
     }
+}
+
+function BRACKET(A){
+    if(A.type.symbol=="Prop" || A.type.symbol=="Type"){
+        return "\\langle "+fill(A.toString())+"\\rangle ";
+    }
+    else return "("+fill(A.toString())+")";
 }
 
 
@@ -724,7 +749,9 @@ function getSimpleVariName(){
 function getNewVariName(t){
     var result="??"
     if(t && t.symbol==Type.symbol) result = color(cal(String.fromCharCode(65 + tempNum%26)+marks(Math.floor(tempNum/26))),"purple")           // +subscript(t)
-    else result = color(String.fromCharCode(97 + tempNum%26)+marks(Math.floor(tempNum/26))/*+"'"*/, "green")           //  +subscript(t)
+    else {
+        result = color(String.fromCharCode(97 + tempNum%26)+marks(Math.floor(tempNum/26))/*+"'"*/, "green")           //  +subscript(t)
+    }
     //console.log(tempNum)
     tempNum++;
     return result
@@ -762,7 +789,7 @@ class Fun {
         if( ContainsVar(inst.second.type, x ) )
             inst.type = FORALL(inst.first, x => f(x).type) //new ForAll(inst.vari, x => f(x).type) //might be slow?
         else {
-            inst.type = new F(inst.first, inst.second.type)
+            inst.type = new F(inst.first,  inst.second.type)
         }
 
         return inst
@@ -772,7 +799,9 @@ class Fun {
         //return "\\lambda_{("+this.vari+":"+this.first +")}." + this.second
         var tempVari = new C((this.nametip?this.nametip:getNewVariName())+(DEBUG?"_{"+this.vari.symbol +"}":""), this.first)
         
+        //console.log("REPLACE "+this.vari+" with "+tempVari);
         var newsecond = REPLACE(this.second, this.vari, tempVari)
+
 
         //return "\\left\\{" + fill(newsecond.toString()) + "\\mid" + tempVari +"\\in"+this.first +"\\right\\}";  //set notation
         return "(" + tempVari + ":" + this.first + ")⇒" + fill(newsecond.toString())
@@ -882,6 +911,9 @@ function tryToConvertNumber(A,b){ //convert javascript-numerical b to type A
 
 function APPLY(a,b){  /// a(b)// where a:A->B or a:Forall(x:A=>B(x))
     //print(a.type.first+"=?="+b.type+"  "+a.kind)
+    if(b==null || b==undefined){
+        console.log("Error b is undefined!")
+    }
     
     if(a.ignore>0 && b.symbol!="?"){
         for(var i=0;i<a.ignore;i++){
@@ -938,9 +970,13 @@ function APPLY(a,b){  /// a(b)// where a:A->B or a:Forall(x:A=>B(x))
         result.notation = "["+b+"]"+subscript("ℕ")
         b=result
     }
+    if(b instanceof Array){
+        b = toList(b);
+        expectedType = b.type;
+    }
 
     //fast check first?
-    if ( !equiv(expectedType,b.type)){
+    if (TYPE_CHECKING && (!ErrorFunc || a.symbol!=ErrorFunc.symbol) && !equiv(expectedType,b.type) ){
         //if(a.type.first != b.type) {  //   :N->M
         //checking definitional equality
         if(! DEFEQUIV( expectedType,b.type) ){
@@ -949,7 +985,8 @@ function APPLY(a,b){  /// a(b)// where a:A->B or a:Forall(x:A=>B(x))
             print(warning);
             print(blue(normal("(Failed definitional equality check)")))
             if(USE_MATHJAX) MathJax.typeset();
-            b = ErrorObject
+            //b = ErrorObject
+            b=ErrorFunc(b);
             //return null;
         }else{
             print(blue(normal("(Using definitional equality)")))
@@ -1056,7 +1093,7 @@ function toRat(n){
         var r = decimalToFraction(n)
         var den=r.denominator;
         var num=r.numerator;
-        console.log(num+"/"+den)
+        //console.log(num+"/"+den)
         var GCD = (num>den)? gcd(num,den) : gcd(den,num)
         return Rat.mk.apply( sign*(num/GCD),den/GCD)
     }
@@ -1215,6 +1252,20 @@ function cloneInstantiated(obj, forceClone=false) {
 }
 
 
+function stackSpaces() {
+    try {
+        throw new Error(); // Create an error to inspect the stack trace
+        return "";
+    } catch (e) {
+        let stackLength = e.stack.split("\n").length - 2; // Subtracting system calls
+      var result="";
+        for(var i=0;i<stackLength;i++)
+        result+=" ";
+        return result;
+    }
+}
+
+
 //---------REPLACE DOESN'T CHECK TYPES!!!! e.g. F->(x:F)->(y:F)-> (x+y:F=y+x:F    ) DOES IT NEED TO?------------------//
 var replacementsFound=0
 
@@ -1240,8 +1291,9 @@ function REPLACE(big, small, newterm ,varis=[], RD=new ReplaceData()){
         //var newtype =big.first;// REPLACE(big.first, small, newterm,varis,RD);
        //***********DUBIOUS KEEPING THE VARI NAME THE SAME BUT CHANGING IT'S TYPE*****  
         var vari= cloneInstantiated(big.vari, true);//new C(getUniqueName(), newtype)      
-        var S = REPLACE(big.appliedTo(vari), small, newterm,varis,RD); //appliedTo overrides vari type!!!
-        vari.type = REPLACE(big.vari.type, small, newterm,varis,RD)
+        var S = REPLACE(big.appliedTo(vari), small, newterm,varis,RD); //*****appliedTo overrides vari type!!!****
+        vari.type = REPLACE(big.vari.type, small, newterm,varis,RD) //(x:type)=>
+        //console.log("vari.type="+vari.type+"-->"+small+"-->"+newterm)
         //if(big.type.appliedTo)
         //    S.type = REPLACE(big.type, small, newterm,varis,RD) //infinite loop
         //S.type=Nat       
@@ -1496,9 +1548,12 @@ function color(s,col){
     return "<font color="+col+">"+s+"</font>"
 }
 
+var didApply=false;
+
 //-----------------SIMPLIFICATION-------------------------
-function ApplyUnappliedFunctions(big){
+function ApplyUnappliedFunctions(big){ 
     if(big.kind=="applied" && big.first.kind=="fun"){
+        didApply=true;
         return APPLY(big.first, big.second)
     }
     
@@ -1523,7 +1578,7 @@ function ApplyUnappliedFunctions(big){
 }
 
 
-function REBUILD(big){    
+function REBUILD(big){   
     if(big.kind=="applied"){
         return APPLY(REBUILD(big.first),REBUILD(big.second))
     }
@@ -1532,8 +1587,8 @@ function REBUILD(big){
         //var newVari= cloneInstantiated(big.vari, true)
         //var S=REBUILD(big.second)
         return new Fun(newVari, x=>big.appliedTo(x),big.nametip)
-        var S=REBUILD(big.appliedTo(newVari )) //REBUILD(big.second)
-        return new Fun(newVari, x=>REPLACE(S, newVari, x),big.nametip) //<-- part of the problem is we are using REPLACE(!!!)
+        //var S=REBUILD(big.appliedTo(newVari )) //REBUILD(big.second)
+        //return new Fun(newVari, x=>REPLACE(S, newVari, x),big.nametip) //<-- part of the problem is we are using REPLACE(!!!)
     }
     //if(big.kind!="atom")
     //print("kind not found in replace "+big.kind)
@@ -1696,8 +1751,10 @@ function SIMP(z, M=1, fullsimp=false){
         //rings
         
         z=RW2(z,[distribL, distribR, distribLM, distribRM
-        , realAddProp,realSubProp
+      /*
+            , realAddProp,realSubProp
         , realMulProp   //These go wrong with: foo=FUN(Real,x=>plusF.apply(Real,x,1));deriv.apply(foo).apply(1)
+       */
         ,RealRatPlus,RealRatTimes,
 
         sinSum, cosSum,
@@ -1712,9 +1769,12 @@ function SIMP(z, M=1, fullsimp=false){
             ,sqrtSquare
 
 
-            ,derivSin2,  derivCos2, intCos2,intSin2, derivCompos, derivPlus,derivTimes, derivConst, derivId, derivSqrt
+            ,derivSin2,  derivCos2, intCos2,intSin2, derivCompos, derivPlus,derivSub,derivTimes, derivConst, derivId, derivSqrt,
+            derivTan, derivTanh,
+            IntDeriv
 
-            ,simpFunc, composeFunc
+            ,simpFunc
+            , composeFunc
             ,makeListP,makeList0, listGet0, listGet1
             ,lt.prop, gt.prop
 
@@ -1886,6 +1946,10 @@ function removeElement(id) {
 
 function getInput(message){
     return evalObject(eval(prompt(message)))
+    //return evalObject(result)
+}
+function getInputString(message){
+    return evalObject(prompt(message))
     //return evalObject(result)
 }
 
@@ -2453,7 +2517,11 @@ function DEFEVAL(A){
         R = REPLACE(R,B,B.def)
         i++;
     }
-    R= ApplyUnappliedFunctions(R); //<--should do this multiple times
+    didApply=true;
+    for(var n=0;n<1000 && didApply;n++){
+        didApply=false;
+        R= ApplyUnappliedFunctions(R); //<--should do this multiple times
+    }
     return R;// REBUILD(R) //<--rebuild causes problems here!!!
 }
  

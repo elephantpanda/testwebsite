@@ -46,7 +46,7 @@ This is probably a better option to begin with
 <h3>Back Propagation using Deriv</h3>
 (Probably not worth implementing at this stage. We can use the deriv to calculate the weight gradients in a simple model)
     <script>
-createInput(`model2 =FUN(R,weight=> FUN(R,input=>Tanh(R.times(input,weight)) ));
+createInput(`model2 =FUN(R,weight=> FUN(R,input=>R.tanh(R.times(input,weight)) ));
 
 error =   FUN(R,expected=>FUN(R,input=> FUN(R,weight=> R.power( R.sub(model2(weight,input),expected) ,2))))
 

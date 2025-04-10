@@ -17,8 +17,19 @@ The Euler-Lagrange equations work Lagrangians of the form:
 
 <script>
     createInput(`phi=Var("\\\\phi",R2R);
-DFunc(times(R2R.to(R2R),Compose(R2R,Deriv,Deriv),Deriv))(phi)`)
+x=AXIOM("x",R);
+y=AXIOM("y",R);
+DFunc(IDD(R2R),x)(phi,y);
+DFunc(times(R2R.to(R2R),Compose(R2R,Deriv,Deriv),Deriv),x)(phi,y)
+`)
 </script>
+DFunc( Id ,y)(phi,x) = delta(x-y)
+
+
+<h2>Functional Derivative</h2>
+The main result is \( \delta f(x)/ \delta f(y) = \delta(x-y)  \) 
+<br><br>
+
 
 <h2>Are there axioms like the product rule?</h2>
 Investigating if there are axioms similar to the product rule for the functional derivative \( \frac{\delta}{\delta f(x)} \)
