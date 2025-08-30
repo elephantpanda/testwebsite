@@ -4,8 +4,9 @@ var USE_FASTNAT=true
 var DEBUG_MODE=true
 var SHOW_LONG_NATS=true
 var DEBUG=!true
+var SETBUILDER = !true
 
-var TYPE_CHECKING=true
+var TYPE_CHECKING=!true
 //Not working:: R.times(R.plus(3,7),R.plus(4,5))
 //Type theory rules
 // x:A, f:A->B              f (x) : B
@@ -21,6 +22,8 @@ def h:= forall (x:Nat) y, x=y   :Prop
 def g:= fun (x:Nat) y => x=y    :(x,y:Nat)->Prop
 */
 
+ReplacementDict={} //for replacing "@[..]"//quick fix
+
 var inputID=0;
 function createInput(text ,element){
     inputID++;
@@ -34,6 +37,7 @@ function createInput(text ,element){
     <button onclick="showEqGraph(${inputID})">EQ GRAPH</button>
     <button onclick="doDefEval(${inputID})">DEFEVAL</button>
     <button onclick="doExpandNats(${inputID})">EXPAND NATS</button>
+    <button onclick="proofForm(${inputID})">PROOF FORM</button>
     <div id="output${inputID}" class="outputbox"></div>
     `
     if(element) element.innerHTML+=s;
@@ -63,6 +67,192 @@ function dir(obj){
       output.innerHTML+=key+" ("+(typeof obj[key])+")<br>"
     }
  }
+
+function transformTo(input){
+  while(true){
+    const toIndex = input.indexOf('->');
+    if (toIndex === -1) break;
+    right = findArrowBody(toIndex+2,input)
+    const body = right.text
+    const fullNew = `.to(${body} )`;
+    const fullEnd = right.end
+
+    input = input.slice(0, toIndex) + fullNew + input.slice(fullEnd);
+  }
+  return input
+}
+
+  function findLeftExpr(start,input) {
+    let i = start;
+    let depth = 0;
+    let expr = '';
+
+    while (i >= 0) {
+      const ch = input[i];
+      if (ch === ')') depth++;
+      else if (ch === '\n') {
+        if (depth === 0) break;
+      }
+      else if (ch === '(') {
+        if (depth === 0) break;
+        depth--;
+      }
+      expr = ch + expr;
+      i--;
+    }
+
+    return { text: expr.trim(), start: i + 1, end: start };
+  }
+
+  function findRightExpr(start,input) {
+    let i = start;
+    let depth = 0;
+    let expr = '';
+
+    while (i < input.length) {
+      const ch = input[i];
+      if (ch === '(') depth++;
+      else if (ch === '\n') {
+        if (depth === 0) break;
+      }
+      else if (ch === ')') {
+        if (depth === 0) break;
+        depth--;
+      }
+      expr += ch;
+      i++;
+    }
+
+    return { text: expr.trim(), start: start, end: i };
+  }
+
+   function findArrowBody(start,input) {
+    let i = start;
+    let depth = 0;
+    let body = '';
+
+    while (i < input.length) {
+      const ch = input[i];
+      if (ch === '(') depth++;
+      else if (ch === ',') {
+        if (depth === 0) {i-=0;break;}
+      }
+      else if (ch === ')') {
+        if (depth === 0) {i-=0;break;}
+        depth--;
+      }
+      body += ch;
+      i++;
+    }
+
+    return { text: body.trim(), start: start, end: i };
+  } 
+
+function transformTypedArrows(input) {
+
+
+
+
+  while (true) {
+    const colonIndex = input.indexOf(':');
+    if (colonIndex === -1) break;
+
+    // Find param (left of colon)
+    const paramPart = findLeftExpr(colonIndex - 1,input);
+    let param = paramPart.text;
+    let fullStart = paramPart.start;
+
+    // Find type (right of colon)
+    const typePart = findRightExpr(colonIndex + 1,input);
+    const type = typePart.text;
+
+    // Expect "=>" after type
+    var arrowIndex=0;
+
+    var isForAll = false;
+    for(var k=typePart.end;k++;k<input.length){
+        if(input[k]=='=' && input[k+1]=='>'){
+            arrowIndex =k; break;
+        }
+        if(input[k]=='-' && input[k+1]=='>'){
+            isForAll=true
+            arrowIndex = k; break;
+        }
+        if(input[k]=='\n'){
+            arrowIndex = k-1; break;
+        }
+    }
+    if(k==input.length) break;
+
+    // Find body after =>
+    const bodyPart = findArrowBody(arrowIndex + 2,input);
+    const body = bodyPart.text;
+    let fullEnd = bodyPart.end;
+
+    // Check if input is wrapped in parentheses *around* paramPart.start and fullEnd
+   /* if (
+      fullStart > 0 &&
+      input[fullStart - 1] === '(' &&
+      fullEnd < input.length &&
+      input[fullEnd] === ')'
+    ) {
+      // Remove the wrapping parentheses from replacement range
+      fullStart = fullStart - 1;
+      fullEnd = fullEnd + 1;
+    }*/
+
+    // Replace full expression
+    const fullOld = input.slice(fullStart, fullEnd);
+    var fullNew = `FUN(${type}, ${param} => ${body} )`;
+    if(isForAll) fullNew = `FORALL(${type}, ${param} => ${body} )`;
+
+    input = input.slice(0, fullStart-1) + fullNew + input.slice(fullEnd);
+    //break;
+  }
+
+  return input;
+}
+
+
+function reverseFUN(expr) {
+  const regex = /^FUN\s*\(\s*(.+?)\s*,\s*([^\s=()]+)\s*=>\s*/;
+  const stack = [];
+
+  let rest = expr.trim();
+
+  while (rest.startsWith('FUN')) {
+    const match = rest.match(regex);
+    if (!match) break;
+
+    const [, type, param] = match;
+    stack.push({ param, type });
+
+    // Find matching closing parenthesis for this FUN call
+    let openParens = 1;
+    let i = match[0].length;
+    while (i < rest.length && openParens > 0) {
+      if (rest[i] === '(') openParens++;
+      else if (rest[i] === ')') openParens--;
+      i++;
+    }
+
+    // Slice the rest of the function body
+    rest = rest.slice(match[0].length, i).trim();
+    if (rest.endsWith(')')) rest = rest.slice(0, -1).trim();
+  }
+
+  // Reconstruct
+  let result = rest;
+  while (stack.length > 0) {
+    const { param, type } = stack.pop();
+    result = `(${param}:${type})=>${result}`;
+  }
+
+  return result;
+}
+
+
+
 
  //see also showVariables
  function showAll(n=1000000){
@@ -145,6 +335,8 @@ function go(ID0,clear){
     if(clear) output.innerHTML="";
     var text=document.getElementById("example"+ID0).value
     text=text.replace("∀","FORALL")
+    text=transformTypedArrows(text) //try this
+    text=transformTo(text)
     
     lines = text.split(";")
     for(var i=0;i<lines.length;i++){
@@ -169,7 +361,10 @@ function go(ID0,clear){
             if(type==undefined)
                 print(normal(result.toString()))
             else{
-                print(fill(result.toString()) + " : " +fill(result.type.toString()))
+                if(result.kind=="fun")
+                    print(fill(result.toString()) + " : " +fill(result.returnType().toString()))
+                else
+                    print(fill(result.toString()) + " : " +fill(result.type.toString()))
             }
         }else result=lastresult;
         
@@ -183,6 +378,16 @@ function go(ID0,clear){
     }).catch((err) => console.error(err.message));
 
     //MathJax.typeset()
+}
+
+function proofForm(inputID){
+    var outputName=`output${inputID}`
+    output=document.getElementById(outputName)
+    result = results[inputID].proofForm()
+    output.innerHTML="";
+    print(result)
+
+    MathJax.typeset()
 }
 
 function evalObject(result){
@@ -392,19 +597,32 @@ class C {
             return this.fastValue
     }
     toString() {
+        if(this.symbol[0]=="@"){
+            if(ReplacementDict[this.symbol])  return ReplacementDict[this.symbol]
+            else return "[NOT FOUND]"+this.symbol;//testing
+        } 
         if (this.symbol == "?") {
             if (wilds[this.value]) return wilds[this.value].toString()
         }
         if (this.notation != null) return this.notation
         if (this.bold) return red(bold(this.symbol))
+        
         return this.symbol
     }
     by(f) {
         return f(this)
     }
-    inputForm(){      
+    inputForm(){  
+        if(this.symbol[0]=="@"){
+            if(ReplacementDict[this.symbol])  return ReplacementDict[this.symbol]
+            else return "[NOT FOUND]"+this.symbol;//testing
+        }     
         if(this.symbol=="FastNat") return this.value
         return this.symbol
+    }
+    proofForm(){ //\\mathtt{AXIOM\\ }
+        return " "+fill(this.inputForm()) +" : "+ this.type.toString()
+        return "\\begin{array}{l}\\mathtt{AXIOM\\ } "+this.type.toString()+"\\\\ \\ \\ "+fill(this.toString()) + "\\end{array}"
     }
 }
 
@@ -580,10 +798,9 @@ class Applied {
         if (this.first.postfix)
             return (this.second.kind == "applied" ? "(" + secondString + ")" : secondString + " ") + this.first
         else {
-            if (this.first.kind != "fun")
-                return firstString + BRACKET(this.second);// "(" + fill(secondString) + ")"
-
-            else
+           // if (this.first.kind != "fun")
+           //     return firstString + BRACKET(this.second);// "(" + fill(secondString) + ")"
+           // else
                 return "(" + firstString + ")(" + fill(secondString) + ")"
             //return firstString+ (this.second.kind=="applied"?"("+ secondString+")" :" "+ secondString  )
         }
@@ -591,13 +808,44 @@ class Applied {
     inputForm(){
         return this.first.inputForm() + "(" + this.second.inputForm() + ")"
     }
+    proofForm(){
+        //return "\\begin{array}{l}\\mathtt{PROOF\\ OF\\ } "+this.type.toString()+" \\mathtt{\\ USING\\ } "+ this.second.proofForm()  +" \\mathtt{\\ ON \\ }   \\\\ \\ \\ "+fill(this.first.proofForm()) + "\\end{array}"
+        //return "\\begin{cases}\\mathtt{PROOF\\ OF\\ } "+this.type.toString()+" \\mathtt{\\ USING\\ } "+ this.second.proofForm()  +" \\mathtt{\\ ON \\ }   \\\\ \\ \\ "+fill(this.first.proofForm()) + "\\end{cases}"
+ 
+        if (this.type.type.symbol!=Prop.symbol){
+            return "" + fill(this.toString())+":"+this.type.toString(); 
+            //return "\\mathtt{VALUE\\ } "+ this.toString();
+        }
+
+
+         var s="\\begin{array}{l}";
+         
+         if(this.type.type.symbol==Prop.symbol){
+            s+="\\mathtt{PROOF\\ OF\\ } "
+         }
+         else{
+            s+="\\mathtt{VALUE\\ OF\\ } "
+         }
+         
+         s+=this.type.toString()+" \\mathtt{\\ USING\\ }\\\\"
+         
+         var f=this;
+         while(f.kind=="applied"){
+            s+= " \\ \\ \\ \\  "+f.second.proofForm() +"\\\\"
+            f=f.first;
+         }  
+         
+         
+         s+=" \\mathtt{\\ ON \\ }   \\\\ \\ \\ \\ \\ "+fill(f.proofForm()) + "\\end{array}"          
+        return s
+    }
 }
 
 function BRACKET(A){
     if(A.type.symbol=="Prop" || A.type.symbol=="Type"){
-        return "\\langle "+fill(A.toString())+"\\rangle ";
+        return "\\left\\langle "+fill(A.toString())+"\\right\\rangle ";
     }
-    else return "("+fill(A.toString())+")";
+    else return "\\left("+fill(A.toString())+"\\right)";
 }
 
 
@@ -656,6 +904,19 @@ function showRealSeries(f){
 //-------------------------------------------------------------------
 //  A->B
 
+class ToObj{ 
+    constructor(A_,B_){
+        this.A=A_;
+        this.B=B_;
+    }
+    toString =()=>"ToObj("+this.A+","+this.B+")";
+    //(f+g)(z)
+    plus = (x,y)=>( z=>this.B.plus(x(z),y(z)))
+    minus = (x,y)=>( z=>this.B.minus(x(z),y(z)))
+    times = (x,y)=>(z=>this.B.times(x(z),y(z)))
+    divide = (x,y)=>(z=>this.B.divide(x(z),y(z)))
+}
+
 
 
 class F {
@@ -679,6 +940,9 @@ class F {
     }
     inputForm(){
         return this.first.inputForm()+".to("+this.second.inputForm()+")"
+    }
+    float(){
+        return new ToObj(this.first.float(),this.second.float());
     }
 }
 function Fbracket(x){
@@ -713,17 +977,26 @@ class ForAll {
         return result
     }
     toString() {
-        var tempVari = new C(getNewVariName()+(DEBUG?"_{"+this.vari.symbol+"}":""), this.first)
-        var second = this.appliedTo(tempVari) //this.func(tempVari)
+        //var tempVari = new C(getNewVariName()+(DEBUG?"_{"+this.vari.symbol+"}":""), this.first)
+        //var second = this.appliedTo(tempVari) //this.func(tempVari)
+        var second = this.second
+        var newVariName =  getNewVariName()
+        ReplacementDict[this.vari.symbol] = newVariName   
 
         //return "\\bigwedge\\limits_{"+this.vari+":"+ this.first+"}"+fill(this.second.toString());
-        if (USE_MATHJAX) return "\\bigwedge\\limits_{" + tempVari + "\\in " + this.first + "}" + fill(second.toString());
-        return red(bold("∀")) + "(" + tempVari + ":" + this.first + ")," + fill(second.toString())
+        if (USE_MATHJAX){
+            return /*"\\mathop{\\forall}\\limits" */ (false? "\\bigcap" :"\\bigwedge")
+             +"\\limits_{" + newVariName + "\\in " + this.first + "}" + fill(second.toString());
+        }
+        return red(bold("∀")) + "(" + newVariName+ ":" + this.first + ")," + fill(second.toString())
     }
     inputForm(){
         var tempVari = new C(getNewVariName(), this.first)
         var second = this.appliedTo(tempVari) 
         return "FORALL("+this.type.inputForm()+","+tempVari.inputForm()+"=>"+second.inputForm()+")"
+    }
+    proofForm(){
+        return "\\mathtt{VALUE\\ } "+this.toString();
     }
 }
 
@@ -794,6 +1067,10 @@ class Fun {
 
         return inst
     }
+    returnType(){
+        var tempVari = new C(getNewVariName(), this.first)  
+        return REPLACE(this.second.type, this.vari, tempVari)
+    }
     toString() {
         
         //return "\\lambda_{("+this.vari+":"+this.first +")}." + this.second
@@ -801,11 +1078,15 @@ class Fun {
         
         //console.log("REPLACE "+this.vari+" with "+tempVari);
         var newsecond = REPLACE(this.second, this.vari, tempVari)
+        //var newsecondType = this.returnType()
 
-
-        //return "\\left\\{" + fill(newsecond.toString()) + "\\mid" + tempVari +"\\in"+this.first +"\\right\\}";  //set notation
+        if(SETBUILDER)
+            //return "\\bigcap\\limits_{" + tempVari +"\\in"+this.first  +"}" + fill(newsecond.toString()) ;
+            return "\\left\\{" + fill(newsecond.toString()) + "\\mid" + tempVari +"\\in"+this.first +"\\right\\}";  //set notation
+       // return "\\left(\\begin{matrix}" + tempVari + "\\\\" + this.first + "\\end{matrix}\\right)⇒" + fill(newsecond.toString())
         return "(" + tempVari + ":" + this.first + ")⇒" + fill(newsecond.toString())
-        //return "("+this.vari+":"+this.first +")⇒"+this.second.toString;
+        //return "\\left(" + tempVari + ":" + this.first + "\\right)⇒" + "\\left("+fill(newsecond.toString())+":"+fill(newsecondType.toString())+"\\right)";
+        
     }
     apply(...args) {
         var N = this
@@ -842,6 +1123,43 @@ class Fun {
         var newsecond = REPLACE(this.second, this.vari, tempVari)
         return "FUN("+this.first.inputForm()+","+tempVari.inputForm()+"=>"+newsecond.inputForm()+")"
     }
+    proofForm(){
+        var f=this;
+        var s="\\begin{array}{l}"
+        
+        var isProof=false;
+        
+        if(f.type.type.symbol==Prop.symbol ){
+            isProof=true
+            s+="\\mathtt{PROOF\\ OF\\ }  "+ this.type.toString()   ;
+            s+="\\\\ \\ \\mathtt{GIVEN}\\\\"
+        }else{
+            s+="\\mathtt{DEFINE\\ FUNCTION\\ }  "+ this.type.toString()   ;
+            s+="\\\\ \\ \\mathtt{INPUTS}\\\\"
+        }
+        
+        
+        
+        var t=0;
+        while(f.kind=="fun" && t<100){
+            //var tempVari = new C(getNewVariName(), f.first)  
+            var newVariName =  "??"
+            //if(f.vari.symbol[0]=="@" && ReplacementDict[f.vari.symbol]  ) newVariName = ReplacementDict[f.vari.symbol] 
+            //else {
+                newVariName=getNewVariName()
+                ReplacementDict[f.vari.symbol] = newVariName    
+            //}  
+            var newsecond = f.second//REPLACE(f.second, f.vari, tempVari) //is not replacing variable in types!
+            s+="\\ \\ \\ "+newVariName+":"+f.first.toString()+"\\\\"
+            f=newsecond
+            t++;
+        }
+        s+="\\ "+(isProof?"\\mathtt{THEN}":"\\mathtt{OUTPUT}")+"\\\\ \\ \\ \\ "
+        s+=(newsecond.proofForm?newsecond.proofForm(): fill(newsecond.toString()))+"\\end{array}"
+        
+        //s+="\\\\Proved:"+this.type.toString();
+        return s;
+    }
 }
 
 
@@ -854,10 +1172,39 @@ function ContainsVar(A,X){
 
 //complexGraph( FUN(CR,z=>iter(CR, FUN(CR, x=>CR.plus(CR.times(x,x),z) ) , z , 10) ))
 
+
+
 function FUN(t,f,nametip=null){
    // console.log(t.symbol)
     return new Fun( new C(getUniqueName(t),t) , f ,nametip )
     //return new Fun( t , f )
+}
+function GIVEN(args){ //***DOESNT WORK! */
+    var f=arguments[arguments.length-1];
+    if(arguments.length==2){ //works
+        var t = arguments[0];
+         return FUN(t, f);
+    }
+    if(arguments.length==3){ //doesn't work!
+        var t1=arguments[0];
+        var t2=arguments[1];
+        return FUN(t1, x=>FUN(t2, f(x) ) );
+    }
+    if(arguments.length==4){
+        var t1=arguments[0];
+        var t2=arguments[1];
+        var t3=arguments[2];
+
+        return  FUN(t1, x=>FUN(t2, y=>FUN(t3 , f(x)(y) )  ) );
+    }
+    if(arguments.length>4){
+        ErrorMessage("FUNCTION arguments>4");
+    }
+       
+    
+    //for(i=0;i<args.length-1;i++){
+    //    f = new FUN( new C(getUniqueName(t),t)  , f )
+   // }
 }
 
 
@@ -1269,7 +1616,7 @@ function stackSpaces() {
 //---------REPLACE DOESN'T CHECK TYPES!!!! e.g. F->(x:F)->(y:F)-> (x+y:F=y+x:F    ) DOES IT NEED TO?------------------//
 var replacementsFound=0
 
-function REPLACE(big, small, newterm ,varis=[], RD=new ReplaceData()){
+function REPLACE(big, small, newterm ,varis=[], RD=new ReplaceData()){ 
     var temp = RD.assigned.slice()
     if(equiv(big,small, varis,RD)  ) {
         replacementsFound ++ //not quite true! 
@@ -1771,10 +2118,12 @@ function SIMP(z, M=1, fullsimp=false){
 
             ,derivSin2,  derivCos2, intCos2,intSin2, derivCompos, derivPlus,derivSub,derivTimes, derivConst, derivId, derivSqrt,
             derivTan, derivTanh,
+            derivPlus2,
+            constCompose,
             IntDeriv
 
-            ,simpFunc
-            , composeFunc
+            //,simpFunc
+            //, composeFunc
             ,makeListP,makeList0, listGet0, listGet1
             ,lt.prop, gt.prop
 

@@ -49,20 +49,20 @@ Prop.id( Prop.not(False) , Prop.id(False) )`)</script>
 <h3>Qualifiers</h3>
 A simple example. Find a proof that forall x show that <span class="eq2">x or True</span> is true. This involves creating a function of the correct type.
 
-<script>createInput(`FUN(Prop,x=>Prop.right(x,True)(True.proof))`)</script>
+<script>createInput(`(x:Prop)=>Prop.right(x,True)(True.proof)`)</script>
 
 
 <br><br>
 
-An example of a proof of the chaining rule (Prop.compose):
+An example of a proof of the chaining rule (Prop.compose):<br>
 
-<script>createInput(`FUN(Prop,a=>FUN(Prop,b=>FUN(Prop,c=>FUN(a.to(b),f=>FUN(b.to(c),g=>FUN(a,x=>g(f(x)))))))).type`)</script>
-
+<script>createInput(`(a:Prop)=>(b:Prop)=>(c:Prop)=>(f:a->b)=>(g:b->c)=>(x:a)=>g(f(x))`)</script>
+<!---FUN(Prop,a=>FUN(Prop,b=>FUN(Prop,c=>FUN(a.to(b),f=>FUN(b.to(c),g=>FUN(a,x=>g(f(x)))))))).type-->
 <h3>Deducibility</h3>
 Here is a proof for <span class="eq2">(T→F)→F</span> or more generally <span class="eq2">(T→x)→x</span>
 
-<script>createInput(`FUN(True.to(False),h=>h(True.proof)).type;
-FUN(Prop,x=>FUN(True.to(x),h=>h(True.proof))).type;
+<script>createInput(`(h:True.to(False))=>h(True.proof);
+(x:Prop)=>(h:True->x)=>h(True.proof);
 `)</script>
 
 <h3>Double Negation</h3>
@@ -87,8 +87,7 @@ We can use left and right to prove:
 
 <h3>Cases</h3>
 
-<script>createInput(`FUN(Prop,A=>FUN(Prop,B=>Prop.case(A,B,Prop.or(B,A), FUN(A,a=>Prop.right(B,A,a)) ,
- FUN(B,b=>Prop.left(B,A,b))   ) )).type`)</script>
+<script>createInput(`FUN(Prop,A=>FUN(Prop,B=>Prop.case(A,B,Prop.or(B,A), Prop.right(B,A), Prop.left(B,A) ))).type`)</script>
 
 <script>createInput(`Prop.case`)</script>
 
@@ -96,6 +95,30 @@ We can use left and right to prove:
 Approximately the not rule for AND and OR:
 
 <script>createInput(`FUN(Prop, A=> FUN(Prop, B=> Prop.case(A,B,False) ) ).type`)</script>
+
+
+<h3>Law of Induction</h3>
+If it is true for the base case and for the successor then it is true for all cases.
+<script>createInput(`Nat.induct`)</script>
+
+<h3>Universal Elimination</h3>
+<script>createInput(`
+(T:Type) 
+(m:T)
+(P:T->Prop)
+(h:(n:T)->P(n)) 
+h(m)
+`)</script>
+
+Another exampleW:
+
+<script>createInput(`
+QQ = P=>FORALL(Nat,n=> P(n))
+
+FUN (Nat.to(Prop), P =>
+  andCombine ( QQ(P), P(3), P(4), FUN(QQ(P), h=>h(3) ), FUN(QQ(P), h => h(4)) )
+)
+`)</script>
 
 </div>
 </body>

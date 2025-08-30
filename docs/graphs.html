@@ -48,6 +48,13 @@ Real.sub(Real.plus(Real.plus(power(Real,x,2),power(Real,y,2)),power(Real,z,2)),8
  ` complexGraph(Compose(CR,CR.cos,CR.sin)) `)
 </script>
 
+<br>
+
+<script>
+    createInput(
+ ` complexGraph( z=> iter(CR, PLUS(TIMES(CR.Id,CR.Id),Constant(CR,z))  , 20 ,z ) )`)
+</script>
+
 //complexGraph(Compose(CR,CR.Cos,CR.Sin))
 //complexGraph(times(CR2CR,CR.Id,CR.Id)) //needs "imply" defined?
 //Mandelbrott:

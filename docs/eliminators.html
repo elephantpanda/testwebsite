@@ -1,0 +1,118 @@
+<html>
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../typetheory.js" ></script>
+    <script src="../definitions.js" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="doc.css">
+</head>
+
+
+<body>
+
+
+<div class="content">
+<h1>Eliminators</h1>
+Trying to define Nat.Elim<br>
+
+
+<script>createInput(`
+Nat.Elim = 
+
+FUN(Nat.to(Prop),P =>    
+ P(Nat.zero).to(
+  FORALL(Nat,n=>P(n).to(P(S(n)))).to(
+   FORALL(Nat,m=>P(m))
+  )
+ )
+)
+
+`)</script>
+
+Some more
+<script>createInput(`
+myplus = FUN(Nat, b =>
+  FUN(Nat, a =>
+    Nat.Elim(
+      FUN(Nat, _ => Nat),            // P: the type of the result is Nat
+      a,                                // base case: plus(0, n) = n
+      FUN(Nat, _ =>  S ),
+      b                                 // the number to eliminate on
+    )
+  )
+)
+`)</script>
+
+<script>createInput(`
+myequals =
+  FUN(Nat, m =>
+    FUN(Nat, n =>
+      Nat.Elim(
+        // P : Nat → Prop — the type of the result after eliminating m
+        FUN(Nat, m2 =>
+          Nat.Elim(
+            // Inner elimination on n
+            FUN(Nat, n2 => Prop),
+            False,                          // equals(0, S(n)) = False
+            FUN(Nat, _, => False),          // no successor to match
+            m2                              // apply to m2
+          )
+        ),
+        // base case: m = 0
+        Nat.Elim(
+          FUN(Nat, n2 => Prop),
+          True,                             // equals(0, 0) = True
+          FUN(Nat, _, => False),            // equals(0, S(n)) = False
+          n
+        ),
+        // inductive step: m = S(m')
+        FUN(Nat, m’ =>
+          FUN(Prop, rec =>
+            Nat.Elim(
+              FUN(Nat, n’ => Prop),
+              False,                        // equals(S(m’), 0) = False
+              FUN(Nat, n’ =>
+                FUN(Prop, rec2 =>
+                  rec                       // equals(S(m’), S(n’)) = equals(m’, n’)
+                )
+              ),
+              n
+            )
+          )
+        ),
+        m
+      )
+    )
+  )
+`)</script>
+
+<script>createInput(`
+isZero = FUN(Nat, n =>
+  Nat.ElimT(
+    FUN(Nat, _ => Bool),         // P: Nat → Bool
+    Bool.True,                        // base case: isZero(0) = True
+    FUN(Nat, k =>
+      FUN(Bool, _ => Bool.False)      // step: ignore previous result, return False
+    ),
+    n
+  )
+)
+`)</script>
+
+<script>createInput(`
+minus1 = 
+  FUN(Nat, n =>
+    Nat.ElimT(
+      FUN(Nat, _ => Nat),      // P: Nat → Nat
+      Nat.zero,                    // base case: minus1(0) = 0
+      FUN(Nat, k => 
+        FUN(Nat, _ => 
+          k                    // step: minus1(S(k)) = k
+        )
+      ),
+      n                        // input to eliminate
+    )
+  )
+  `)</script>
+</div>
+</body>
+</html>

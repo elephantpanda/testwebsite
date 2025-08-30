@@ -66,6 +66,12 @@ dEdW = FUN(R,expected=>FUN(R,input=>Deriv(error(input,expected))));
 `)
     </script>
 
+Test:
+<script>
+createInput(`input=AXIOM("input",Real);
+Deriv(FUN(R,x=>R.plus(input,R.tanh(x))))`)
+</script>
+
 
     <script>
         var PROVIDER = 'wasm' 

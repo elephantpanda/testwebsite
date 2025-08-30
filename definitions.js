@@ -218,6 +218,37 @@ var two = APPLY(succ, one)
 var three = APPLY(succ, two)
 var four = APPLY(succ, three)
 
+
+//Elim is part of the core language here's what it's supposed to do during type simplification:
+//Nat.Elim P base step 0 reduces to base
+//Nat.Elim P base step (S n) reduces to step n (Nat.Elim P base step n)
+
+
+Nat.induct = AXIOM("Nat.Elim", FORALL(Nat.to(Prop),P =>    
+ P(Nat.zero).to(
+  FORALL(Nat,n=>P(n).to(P(S(n)))).to(
+   FORALL(Nat,m=>P(m))
+  )
+ )
+))
+
+//What does it even do??? :S
+Nat.inductT = AXIOM("Nat.ElimT", FORALL(Nat.to(Type),P =>    
+ P(Nat.zero).to(
+  FORALL(Nat,n=>P(n).to(P(S(n)))).to(
+   FORALL(Nat,m=>P(m))
+  )
+ )
+))
+
+Nat.induct.notation = T=>base=>step=>
+    "\\begin{cases} \\tt{typeof\\ } "+T+"\\\\ \\tt{base\\ } "+base+"\\\\ \\tt{step\\ } "+step+"\\end{cases}"
+
+
+
+
+
+
 var FastNat = AXIOM("FastNat",Nat)
 fastNatNotation = val=>{
     return val
@@ -439,6 +470,8 @@ Real.mk.fastValue = (x,y)=>{
 
 //for machine learning???
 var Bool = AXIOM("bool",Type); Bool.notation=blue("\\mathbb{B}")
+Bool.True = AXIOM("Bool.True",Bool)
+Bool.False = AXIOM("Bool.False",Bool)
 
 var Float16 = AXIOM("f16",Type); Float16.notation=blue("\\mathbb{f16}")
 var Float32 = AXIOM("f32",Type);Float32.notation=blue("\\mathbb{f32}")
@@ -920,11 +953,20 @@ AddStandardFunctions(R);
 
 
 
-R2R.fromReal = AXIOM("castR2R",Real.to(R2R))
+
+
+
+var Const = ALIAS("Constant",FUN(Type, t=>FUN(t,x=>FUN(t,_=>x))  ))
+Const.fastValue = t=>n=>x=>n;
+Const.notation = t=>n=>x=>n;
+
+R2R.fromReal = Const(R);
+
+/*R2R.fromReal = AXIOM("castR2R",Real.to(R2R))
 R2R.fromReal.notation = x=> "("+x+")"//+subscript(blue("ℝ\\rightarrow ℝ"))
 R2R.fromReal.def = FUN(R,x=> FUN(R,_=>x ) )
 R2R.fromReal.prop = FORALL(Real, x=> equals(R2R, R2R.fromReal(x) , R2R.fromReal.def(x)  ))
-R2R.fromReal.fastValue = x=>y=>x;
+R2R.fromReal.fastValue = x=>y=>x;*/
 
 var R2ROneL = AXIOM("R2ROne", FORALL(R2R, x=>equals(R2R, times(R2R,R2R.fromReal(1), x)  , x  )   ))
 var R2ROneR = AXIOM("R2ROne", FORALL(R2R, x=>equals(R2R, times(R2R,x,R2R.fromReal(1)), x   )   ))
@@ -1094,17 +1136,27 @@ var intId = AXIOM("IntId", equals(R2R,Integral(Id), divide(R2R, times(R2R,Id,Id)
 var derivSqrt = AXIOM("DerivSqrt",   equals( R2R,   Deriv(Real.Sqrt),   divide(R2R,-0.5,Real.Sqrt)  ))
 var intDeriv = AXIOM("IntDeriv", FORALL(R2R,F=>equals(R2R, Integral(Deriv(F)), sub(R2R, F, R2R.fromReal(F(Real.zero)) )   )))
 
-//NOT TRUE if F or G depends on x!
+//NOT TRUE if F or G depends on x!!!
 var derivCompos = AXIOM("DerivCompos", FORALL(R2R, F=>FORALL(R2R, G=>equals( R2R, Deriv(compose(F,G)), times(R2R,compose( Deriv(F),G ),Deriv(G) )   ) )))
 
 var derivPlus = AXIOM("DerivPlus",  FORALL(R2R, F=>FORALL(R2R, G=>equals( R2R, Deriv(plus(R2R,F,G)),  plus(R2R, Deriv(F)  ,Deriv(G) )   ) )))
 var derivSub= AXIOM("DerivSub",  FORALL(R2R, F=>FORALL(R2R, G=>equals( R2R, Deriv(sub(R2R,F,G)),  sub(R2R, Deriv(F)  ,Deriv(G) )   ) )))
 var derivTimes = AXIOM("DerivTimes",  FORALL(R2R, F=>FORALL(R2R, G=>equals( R2R, Deriv(times(R2R,F,G)),  plus(R2R, times(R2R,Deriv(F),G)  ,times(R2R,F, Deriv(G) )   ) ))))
 
+//Deriv(    )
+
+//wrong because F might depend on x?
+var derivPlus2 = AXIOM("DerivPlus2" , FORALL(R,C=>equals(R2R, Deriv(R.plus(C)) , Const(R,1) ) ))
+
+var constCompose = AXIOM("ConstCompose", FORALL(R,C=>FORALL(R2R,D=> equals(R2R, compose( Const(R,C), D   ) , Const(R,C)     )  )))
+
 //Deriv(FUN(Real,x=>Sin(x))) ---------> Deriv(Sin)????        (F=FUN(Real,vari="_x",second=Sin("_x")))
+
+//*****This should be a rule in the type theory not here*****/
+//(Since we can't know if F depends on x)
 var simpFunc = AXIOM("simpFunc",  FORALL(R2R, F=> equals(R2R,  FUN(Real, x=> F(x) )  , F ) ) ) //should this work?
 
-var derivConst = AXIOM("DervConst" ,  FORALL(Real, x => equals( R2R, Deriv( R2R.fromReal( x ) ) , R2R.fromReal (Real.zero) ) ) )
+var derivConst = AXIOM("DerivConst" ,  FORALL(Real, x => equals( R2R, Deriv( R2R.fromReal( x ) ) , R2R.fromReal (Real.zero) ) ) )
 var derivId =    AXIOM("DervId" ,     FORALL(Real, x => equals( R2R, Deriv( Id ) , R2R.fromReal (Real.one) ) ) )
 
 
@@ -1596,22 +1648,13 @@ var mulZeroL = FUN(Nat, x =>  new Rule(  Nat.times(zero,x), zero))
 var mulOne  = FUN(Nat, x =>  new Rule(  Nat.times(x,one), x)    )  
 var mulOneL  = FUN(Nat, x =>  new Rule(  Nat.times(one,x), x)   )
 
-function TIMES(x,y){
-    var X=evalObject(x);
-    var T=X.type;
-    return times(T,X,y)
-}
-function PLUS(...args){
-    var X=evalObject(args[0]);
-    var T=X.type;
-    console.log()
-    return plus(T).apply(...args)
-}
-function SUB(x,y){
-    var X=evalObject(x);
-    var T=X.type;
-    return sub(T,X,y)
-}
+//Get type from arguments
+DeriveType = (f,args)=>f(evalObject(args[0]).type).apply(...args)
+
+TIMES = (...args)=>DeriveType(times,args); 
+PLUS = (...args)=>DeriveType(plus,args);
+SUB = (...args)=>DeriveType(sub,args);
+DIVIDE = (...args)=>DeriveType(divide,args);
 
 //----------------------------COMPLEX RULES-----------------------
 
@@ -2061,6 +2104,7 @@ NOT = Prop.not;
 //AXIOM("not",Prop.to(Prop)); 
 
 
+//can this be derived?
 
 //------------------------AND------------------------
 
@@ -2079,6 +2123,12 @@ Type.pair = AXIOM("prodMk", FORALL(Type,A=>FORALL(Type,B=>A.to(B.to(Type.prod(A,
 Type.first  =AXIOM("prodFirst",   FORALL(Type,A=>FORALL(Type,B=>Type.prod(A)(B).to(A))));      Type.first.notation = a=>b=>x=>"{"+x+"}"+subscript("L")
 Type.second =AXIOM("prodSecond",  FORALL(Type,A=>FORALL(Type,B=>Type.prod(A)(B).to(B)) ));     Type.second.notation = a=>b=>x=>"{"+x+"}"+subscript("R")
 
+//(A->B) -> (A->C) -> A->(B^C)
+andCombine = AXIOM("andCombine", 
+    FORALL(Prop,A=>FORALL(Prop, B=>FORALL(Prop,C=> A.to(B). to( A.to(C). to( A.to(Prop.and(B,C))   
+)  )   )   )))
+
+
 function PAIR(a,b){
     return a.type.type.pair(a.type,b.type,a,b );
 }
@@ -2091,8 +2141,8 @@ Prop.LeftCaseReduct = AXIOM("LeftCaseReduct", FORALL(Prop,A=>FORALL(Prop,B=>FORA
     Prop.equals(C, Prop.case(A,B,C,f,g,Prop.left(A,B,a)),f(a)) )))) )))
 Prop.RightCaseReduct = AXIOM("RightCaseReduct", FORALL(Prop,A=>FORALL(Prop,B=>FORALL(Prop,C=>  FORALL(A.to(C), f=>FORALL(B.to(C), g=> FORALL(B, b=>
         Prop.equals(C, Prop.case(A,B,C,f,g,Prop.right(A,B,b)),g(b)) )))) )))
-Prop.case.notation = A=>B=>C=>f=>g=>"\\begin{cases}"+f+"\\\\"+g+"\\end{cases}";
-Prop.case2.notation = A=>B=>C=>f=>g=>"\\begin{cases}"+f+"\\\\"+g+"\\end{cases}";
+Prop.case.notation = A=>B=>C=>f=>g=>"\\begin{cases}"+fill(f)+"\\\\"+fill(g)+"\\end{cases}";
+Prop.case2.notation = A=>B=>C=>f=>g=>"\\begin{cases}"+fill(f)+"\\\\"+fill(g)+"\\end{cases}";
 
 Type.case=AXIOM("TypeCase", FORALL(Type,A=>FORALL(Type,B=>FORALL(Type,C=>A.to(C).to(B.to(C).to(Type.sum(A,B).to(C)))))))
 Type.case.notation = A=>B=>C=>f=>g=>"\\begin{cases}"+f+"\\\\"+g+"\\end{cases}";
