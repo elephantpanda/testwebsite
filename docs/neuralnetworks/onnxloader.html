@@ -55,10 +55,10 @@ dEdW = FUN(R,expected=>FUN(R,input=>Deriv(error(input,expected))));
 //TRAIN( expected=>inputs=>weights=> error, training_data={[in1,in2], [expected]}, weightTypes=[W1,W2,W3], 0.001, 1000) = [newW1,newW2,newW3]
 // new_weights += 0.001 * Deriv(error(inputs,expected), weights)
 
-//example solve quadratic equation: (W^2-5*W+6) = 0 //no inputs
+//example solve quadratic equation- (W^2-5*W+6) = 0 //no inputs
 //TRAIN( _=>_=>W=>(W^2-5*W+6)^2, training_data={}, weightTypes-[Real], 0.001,1000) = [2.0 or 3.0]
 
-//Or we might use (?): but then hard to know if |error| is going down
+//Or we might use (?)- but then hard to know if |error| is going down
 //TRAIN(  dW ,   )
 //W_new = Iterate( W=>W+0.01*dE(W), 1000)(0)
 //W += dE(W)   delta W = s* diff(E)/diff(W) 

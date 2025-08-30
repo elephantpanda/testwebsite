@@ -32,7 +32,7 @@ gamma = AXIOM("\\gamma", Vec(psi.type.to(psi.type),4));
 Q = FUN(Z4,k=>Vector.get(CScalar,4,Vector.get(psi.type.to(psi.type) , 4, gamma)(k)(psi))(alpha));
 
 
-equals(CR,plus(CScalar, sum(CScalar,FUN(Nat,n=> PDeriv(CR,4)( Zmod.fromNat(4,n)  )( Q(Zmod.fromNat(4,n)))) ,4 )  , times(CScalar, m, Psi(alpha)))(x),0);
+equals(CR,plus(CScalar, sum(CScalar,FUN(Nat,n=> PDeriv(CR,4)( Zmod.fromNat(4,n)  )( Q(Zmod.fromNat(4,n)))) ,4 )  , times(CScalar, m, Psi(alpha)))(x),  Complex.mk(Real,0,0)   );
 `.replaceAll("\\","\\\\"))
 </script>
 

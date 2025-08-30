@@ -27,7 +27,7 @@ Mistake here as indices for CP4 are 0..4
     createInput(
 `conditional(Proj(CR,4))(FUN(Proj(CR,4),x=>equals(CR,
    sum(CR, FUN(Nat, n=>power(CR,Proj.get(CR,4,x,Zmod.fromNat(4,n)),5)) ,4)
-,0)))
+, Complex.mk(Real,0,0)  )))
 
 `.replaceAll("\\","\\\\"))
 </script>
