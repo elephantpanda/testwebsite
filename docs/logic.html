@@ -60,9 +60,9 @@ An example of a proof of the chaining rule (Prop.compose):<br>
 <!---FUN(Prop,a=>FUN(Prop,b=>FUN(Prop,c=>FUN(a.to(b),f=>FUN(b.to(c),g=>FUN(a,x=>g(f(x)))))))).type-->
 <h3>Deducibility</h3>
 Here is a proof for <span class="eq2">(T→F)→F</span> or more generally <span class="eq2">(T→x)→x</span>
-
-<script>createInput(`(h:True.to(False))=>h(True.proof);
-(x:Prop)=>(h:True->x)=>h(True.proof);
+<script>createInput(`(h:True.to(False))=>h(True.proof)
+`)</script>
+<script>createInput(`(x:Prop)=>(h:True->x)=>h(True.proof)
 `)</script>
 
 <h3>Double Negation</h3>
