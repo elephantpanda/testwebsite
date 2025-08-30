@@ -75,26 +75,26 @@ With L(E,p) = prod{p:prime} 1/( 1 - notDivide(N,p)(  (p+1 - numSol(E,p)  )^(-s) 
 Another way of stating it is that the rank is given by the following limit. The product should be only over primes:
 <script>
     createInput(`
-rank = limit(FUN(Nat, k=> Real.divide( Log(  prod( Real,
+rank = limit(FUN(Nat, k=> Real.divide( Log(R,  prod( Real,
 FUN( Nat, n=> Real.divide(  Real.fromRat( Rat.mk( Int.mk(numSol(n),0),1) ),
 Real.fromRat( Rat.mk(Int.mk(n,0),1))
 
 )   ),k )
 ),
-Log(Log(        Real.fromRat(Rat.mk(Int.mk(k,0),1))           ))
+Log(R,Log(R,        Real.fromRat(Rat.mk(Int.mk(k,0),1))           ))
 )))
     `)
 </script>
 
 <script>
     createInput(`
-    rank = (FUN(Nat, k=> Real.divide(  Log(prod( Real,
+    rank = (FUN(Nat, k=> Real.divide(  Log(R,prod( Real,
 FUN( Nat, n=> Real.divide(  Real.fromRat( Rat.mk( Int.mk(numSol.def(n),0),1) ),
 Real.fromRat( Rat.mk(Int.mk(n,0),1))
 
 )   ),k
 )),
-Log(Log(        Real.fromRat(Rat.mk(Int.mk(k,0),1))           ))
+Log(R,Log(R,        Real.fromRat(Rat.mk(Int.mk(k,0),1))           ))
 )))(30)
     
     `)
