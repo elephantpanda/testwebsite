@@ -2185,7 +2185,7 @@ isPrime.fastValue = p=>{
 //var CR=Complex(Real);
 var CR=ALIAS("CR", Complex(Real));CR.notation = blue("\\mathbb{C}"); CR.fastValue = new ComplexObj(new RealObj());
 var HR=Quaternion(Real);HR.notation = blue("\\mathbb{H}");
-var OcR=Octonion(Real);OR.notation = blue("\\mathbb{O}");
+var OcR=Octonion(Real);OcR.notation = blue("\\mathbb{O}");
 //ALIAS(blue("\\mathbb{C}"),Complex(Real));
 CR.mk = Complex.mk(Real)
 
