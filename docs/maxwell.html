@@ -39,7 +39,7 @@ We can represent the fields in various ways, for example as vectors of fields (E
 E2 = AXIOM("\\mathbf{E}",R.to(VF));
 H2 = AXIOM("\\mathbf{H}",R.to(VF));
 
-//alternatice definition:
+//alternatice definition-
 E = AXIOM("\\mathbf{\\tilde{E}}",R.to(VF2));
 H = AXIOM("\\mathbf{\\tilde{H}}",R.to(VF2));
 
@@ -109,7 +109,7 @@ A=AXIOM("A",VF4);
 Vector.get(SF4,4,A,nu);
 FF = sub(SF4 , PDeriv(R,4, nu,Vector.get(SF4,4,A,sigma) ) , PDeriv(R,4,sigma,Vector.get(SF4,4,A,nu) ));
 
-//Using exterior derivative:
+//Using exterior derivative-
 ExtDeriv = AXIOM("\\nabla_\\wedge",VF4.to( Tensor(SF4,4,2)    ) );
 ExtDeriv(A)
 `.replaceAll("\\","\\\\"))
